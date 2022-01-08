@@ -13,8 +13,8 @@
 #include "warp.h"
 #include "devSSD1331.h"
 
-volatile uint8_t	inBuffer[1];
-volatile uint8_t	payloadBytes[1];
+volatile uint8_t	inBuffer[32];
+volatile uint8_t	payloadBytes[32];
 
 
 /*
@@ -22,6 +22,7 @@ volatile uint8_t	payloadBytes[1];
  */
 enum
 {
+	kSSD1331PinMISO		= GPIO_MAKE_PIN(HW_GPIOA, 6),
 	kSSD1331PinMOSI		= GPIO_MAKE_PIN(HW_GPIOA, 8),
 	kSSD1331PinSCK		= GPIO_MAKE_PIN(HW_GPIOA, 9),
 	kSSD1331PinCSn		= GPIO_MAKE_PIN(HW_GPIOB, 13),
@@ -77,7 +78,7 @@ devSSD1331init(void)
 	PORT_HAL_SetMuxMode(PORTA_BASE, 8u, kPortMuxAlt3);
 	PORT_HAL_SetMuxMode(PORTA_BASE, 9u, kPortMuxAlt3);
 
-	enableSPIpins();
+	warpEnableSPIpins();
 
 	/*
 	 *	Override Warp firmware's use of these pins.
@@ -160,9 +161,29 @@ devSSD1331init(void)
 	/*
 	 *	Any post-initialization drawing commands go here.
 	 */
-	//...
+	writeCommand(kSSD1331CommandDRAWRECT);		//0x22
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x5F);
+	writeCommand(0x3F);
+	writeCommand(0x00);
+	writeCommand(0xFF);
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0xFF);
+	writeCommand(0x00);
+	wait(100);
 
+	/*
+	* Clear Screen
+	*/
 
+	writeCommand(kSSD1331CommandCLEAR);
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x5F);
+	writeCommand(0x3F);
+	
 
 	return 0;
 }

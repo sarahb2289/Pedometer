@@ -177,9 +177,6 @@
 	volatile WarpUARTDeviceState			deviceBGXState;
 #endif
 
-#include "devINA219.h"
-volatile WarpI2CDeviceState				deviceINA219State;
-
 
 volatile i2c_master_state_t				i2cMasterState;
 volatile spi_master_state_t				spiMasterState;
@@ -1602,9 +1599,6 @@ main(void)
 	/*
 	 *	Initialize all the sensors
 	 */
-	initINA219(   0x40    /* i2cAddress */,	              kWarpDefaultSupplyVoltageMillivoltsINA219     );
-	configureSensorINA219( 40,96 );
-
 	#if (WARP_BUILD_ENABLE_DEVBMX055)
 		initBMX055accel(0x18	/* i2cAddress */,	&deviceBMX055accelState,	kWarpDefaultSupplyVoltageMillivoltsBMX055accel	);
 		initBMX055gyro(	0x68	/* i2cAddress */,	&deviceBMX055gyroState,		kWarpDefaultSupplyVoltageMillivoltsBMX055gyro	);
@@ -2024,9 +2018,9 @@ main(void)
 		}
 	#endif
 	
-	warpDisableSPIpins();
 	devSSD1331init();
 	
+
 	while (1)
 	{
 		/*
@@ -2180,12 +2174,10 @@ main(void)
 					warpPrint("\r\t- 'k' AS7263			(0x00--0x2B): 2.7V -- 3.6V (compiled out) \n");
 				#endif
 
-				warpPrint("\r\t- 'l' INA219                     : 3V -- 5.5V\n");
-
 				warpPrint("\r\tEnter selection> ");
 				key = warpWaitKey();
 
-				switch(key)	
+				switch(key)
 				{
 					#if (WARP_BUILD_ENABLE_DEVADXL362)
 						case '1':
@@ -2331,11 +2323,6 @@ main(void)
 						break;
 					}
 #endif
-					case 'l':
-						menuTargetSensor = kWarpSensorINA219;
-						menuI2cDevice = &deviceINA219State;
-						break;
-
 					default:
 					{
 						warpPrint("\r\tInvalid selection '%c' !\n", key);
@@ -2827,7 +2814,7 @@ printAllSensors(bool printHeadersAndCalibration, bool hexModeFlag, int menuDelay
 	numberOfConfigErrors += configureSensorBME680(	0b00000001,	/*	payloadCtrl_Hum: Humidity oversampling (OSRS) to 1x				*/
 							0b00100100,	/*	payloadCtrl_Meas: Temperature oversample 1x, pressure overdsample 1x, mode 00	*/
 							0b00001000	/*	payloadGas_0: Turn off heater							*/
-					);	
+					);
 
 	if (printHeadersAndCalibration)
 	{
@@ -3022,7 +3009,7 @@ loopForSensor(	const char *  tagString,
 	{
 		for (int i = 0; i < readCount; i++) for (int j = 0; j < chunkReadsPerAddress; j++)
 		{
-			status = readSensorRegisterFunction(address+j, 2 /* numberOfBytes */);
+			status = readSensorRegisterFunction(address+j, 1 /* numberOfBytes */);
 			if (status == kWarpStatusOK)
 			{
 				nSuccesses++;
@@ -3057,9 +3044,9 @@ loopForSensor(	const char *  tagString,
 
 					if (chatty)
 					{
-						warpPrint("\r\t0x%02x --> 0x%02x 0x%02x\n",
+						warpPrint("\r\t0x%02x --> 0x%02x\n",
 							address+j,
-							i2cDeviceState->i2cBuffer[0],i2cDeviceState->i2cBuffer[1]);
+							i2cDeviceState->i2cBuffer[0]);
 					}
 				}
 			}
@@ -3615,34 +3602,6 @@ repeatRegisterReadForDeviceAndAddress(WarpSensorDevice warpSensorDevice, uint8_t
 
 			break;
 		}
-		case kWarpSensorINA219:
-                {
-                        /*
-                         *      INA219: VDD 3.3--5.5
-                         */
-                        
-                          	loopForSensor(  "\r\nINA219:\n\r",            /*      tagString                       */
-                                                &readSensorRegisterINA219,    /*      readSensorRegisterFunction      */
-                                                &deviceINA219State,           /*      i2cDeviceState                  */
-                                                NULL,                           /*      spiDeviceState                  */
-                                                baseAddress,                    /*      baseAddress                     */
-                                                0x00,                           /*      minAddress                      */
-                                                0x05,                           /*      maxAddress                      */
-                                                repetitionsPerAddress,          /*      repetitionsPerAddress           */
-                                                chunkReadsPerAddress,           /*      chunkReadsPerAddress            */
-                                                spinDelay,                      /*      spinDelay                       */
-                                                autoIncrement,                  /*      autoIncrement                   */
-                                                sssupplyMillivolts,             /*      sssupplyMillivolts              */
-                                                referenceByte,                  /*      referenceByte                   */
-                                                adaptiveSssupplyMaxMillivolts,  /*      adaptiveSssupplyMaxMillivolts   */
-                                                chatty                          /*      chatty                          */
-                                                );
-                       
-                       
-
-                        break;
-                }
-
 
 		default:
 		{

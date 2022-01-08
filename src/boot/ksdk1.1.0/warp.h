@@ -88,6 +88,7 @@ typedef enum
 	kWarpSensorAS7262,
 	kWarpSensorAS7263,
 	kWarpSensorSCD30,
+	kWarpSensorINA219,
 } WarpSensorDevice;
 
 typedef enum
@@ -153,6 +154,8 @@ typedef enum
 	kWarpSensorConfigurationRegisterADXL362DEVID_AD			= 0x00,
 	kWarpSensorConfigurationRegisterADXL362DEVID_MST		= 0x01,
 	kWarpSensorConfigurationRegisterADXL362RESET			= 0x1F,
+
+	kWarpSensorConfigurationRegisterINA219CONFIGURATION		= 0x05,
 } WarpSensorConfigurationRegister;
 
 typedef enum
@@ -239,6 +242,11 @@ typedef enum
 	kWarpSensorOutputRegisterADXL362FIFO_SAMPLES			= 0x29,
 	kWarpSensorOutputRegisterADXL362FILTER_CTL			= 0x2C,
 	kWarpSensorOutputRegisterADXL362POWER_CTL			= 0x2D,
+
+	kWarpSensorOutputRegisterINA219SHUNT_VOLTAGE			= 0x01,
+	kWarpSensorOutputRegisterINA219BUS_VOLTAGE			= 0x02,
+	kWarpSensorOutputRegisterINA219POWER				= 0x03,
+	kWarpSensorOutputRegisterINA219CURRENT				= 0x04,
 
 
 } WarpSensorOutputRegister;
