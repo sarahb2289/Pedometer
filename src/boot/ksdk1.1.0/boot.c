@@ -2037,7 +2037,7 @@ main(void)
 		printBootSplash(gWarpCurrentSupplyVoltage, menuRegisterAddress, &powerManagerCallbackStructure);
 
 		warpPrint("\rSelect:\n");
-		warpPrint("\r- 'a': set default Changed Again sensor.\n");
+		warpPrint("\r- 'a': set default Agaiiin sensor.\n");
 		warpPrint("\r- 'b': set I2C baud rate.\n");
 		warpPrint("\r- 'c': set SPI baud rate.\n");
 		warpPrint("\r- 'd': set UART baud rate.\n");

@@ -71,8 +71,72 @@ writeCommand(uint8_t commandByte)
 	return status;
 }
 
-// void 
-// drawVertLine()
+void
+writeColour(void)
+{
+	writeCommand(0x00);	
+	writeCommand(0xFF);
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0xFF);
+	writeCommand(0x00);
+}
+
+void 
+drawVertSegment(uint8_t topLeftX, uint8_t topLeftY)
+{
+	writeCommand(kSSD1331CommandDRAWRECT);
+	writeCommand(topLeftX);
+	writeCommand(topLeftY);
+	writeCommand(topLeftX+SEGMENT_WIDTH);
+	writeCommand(topLeftY+SEGMENT_LENGTH);
+	writeColour();
+	
+}
+
+void 
+drawHoSegment(uint8_t topLeftX, uint8_t topLeftY)
+{
+	writeCommand(kSSD1331CommandDRAWRECT);
+	writeCommand(topLeftX);
+	writeCommand(topLeftY);
+	writeCommand(topLeftX+SEGMENT_LENGTH);
+	writeCommand(topLeftY+SEGMENT_WIDTH);
+	writeColour();
+	
+}
+
+void 
+drawSegment(uint8_t segmentNum)
+{
+	uint8_t vertSegments[] = {1,2,4,5};
+	uint8_t hoSegments[] = {0,3,6};
+	if (segmentNum==0) {
+		drawHoSegment(SEGMENT_WIDTH,0);
+	}
+	if (segmentNum==1) {
+		drawVertSegment(2*SEGMENT_WIDTH+SEGMENT_LENGTH,SEGMENT_WIDTH);
+	}
+	if (segmentNum==2) {
+		drawVertSegment(2*SEGMENT_WIDTH+SEGMENT_LENGTH,2*SEGMENT_WIDTH);
+	}
+	if (segmentNum==3) {
+		drawHoSegment(SEGMENT_WIDTH,2*SEGMENT_WIDTH+2*SEGMENT_LENGTH);
+	}
+	if (segmentNum==4) {
+		drawVertSegment(0,2*SEGMENT_WIDTH+SEGMENT_LENGTH);
+	}
+	if (segmentNum==5) {
+		drawVertSegment(0,SEGMENT_WIDTH);
+	}
+	if (segmentNum==6) {
+		drawHoSegment(SEGMENT_WIDTH,SEGMENT_WIDTH+SEGMENT_LENGTH);
+	}
+}
+
+
+
+
 
 int
 devSSD1331init(void)
@@ -195,17 +259,21 @@ devSSD1331init(void)
 
 	// Draw line
 
-	writeCommand(kSSD1331CommandDRAWRECT);
-	writeCommand(0);
-	writeCommand(SEGMENT_WIDTH+SEGMENT_GAP);
-	writeCommand(SEGMENT_WIDTH);
-	writeCommand(SEGMENT_WIDTH+SEGMENT_GAP+SEGMENT_LENGTH);
-	writeCommand(0x00);
-	writeCommand(0xFF);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0xFF);
-	writeCommand(0x00);
+	// drawVertSegment(0,SEGMENT_WIDTH+SEGMENT_GAP);
+	// drawHoSegment(SEGMENT_WIDTH+SEGMENT_GAP,0);
+	drawSegment(0);
+	// OSA_TimeDelay(500);
+	// drawSegment(1);
+	// OSA_TimeDelay(500);
+	// drawSegment(2);
+	// OSA_TimeDelay(500);
+	// drawSegment(3);
+	// OSA_TimeDelay(500);
+	// drawSegment(4);
+	// OSA_TimeDelay(500);
+	// drawSegment(5);
+	// OSA_TimeDelay(500);
+	// drawSegment(6);
 	
 
 	return 0;
