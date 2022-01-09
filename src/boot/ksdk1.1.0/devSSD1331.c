@@ -173,15 +173,32 @@ devSSD1331init(void)
 	writeCommand(0xFF);
 	writeCommand(0x00);
 
+	// Wait 1 second
+	OSA_TimeDelay(1000);
+
 	/*
 	* Clear Screen
 	*/
 
-	// writeCommand(kSSD1331CommandCLEAR);
-	// writeCommand(0x00);
-	// writeCommand(0x00);
-	// writeCommand(0x5F);
-	// writeCommand(0x3F);
+	writeCommand(kSSD1331CommandCLEAR);
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x5F);
+	writeCommand(0x3F);
+
+	// Draw line
+
+	writeCommand(kSSD1331CommandDRAWRECT);
+	writeCommand(0x00);
+	writeCommand(0x03);
+	writeCommand(0x02);
+	writeCommand(0x0D);
+	writeCommand(0x00);
+	writeCommand(0xFF);
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0xFF);
+	writeCommand(0x00);
 	
 
 	return 0;
