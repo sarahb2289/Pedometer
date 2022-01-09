@@ -13,8 +13,14 @@
 #include "warp.h"
 #include "devSSD1331.h"
 
+#define SEGMENT_WIDTH 2
+#define SEGMENT_LENGTH 10
+#define SEGMENT_GAP 1 
+
+
 volatile uint8_t	inBuffer[32];
 volatile uint8_t	payloadBytes[32];
+
 
 
 /*
@@ -65,7 +71,8 @@ writeCommand(uint8_t commandByte)
 	return status;
 }
 
-
+// void 
+// drawVertLine()
 
 int
 devSSD1331init(void)
@@ -189,10 +196,10 @@ devSSD1331init(void)
 	// Draw line
 
 	writeCommand(kSSD1331CommandDRAWRECT);
-	writeCommand(0x00);
-	writeCommand(0x03);
-	writeCommand(0x02);
-	writeCommand(0x0D);
+	writeCommand(0);
+	writeCommand(SEGMENT_WIDTH+SEGMENT_GAP);
+	writeCommand(SEGMENT_WIDTH);
+	writeCommand(SEGMENT_WIDTH+SEGMENT_GAP+SEGMENT_LENGTH);
 	writeCommand(0x00);
 	writeCommand(0xFF);
 	writeCommand(0x00);
