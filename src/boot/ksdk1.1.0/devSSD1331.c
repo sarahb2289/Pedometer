@@ -112,13 +112,13 @@ drawSegment(uint8_t segmentNum)
 	uint8_t vertSegments[] = {1,2,4,5};
 	uint8_t hoSegments[] = {0,3,6};
 	uint8_t col1 = 0;
-	uint8_t col2 = 2;
-	uint8_t col3 = 12;
+	uint8_t col2 = SEGMENT_WIDTH;
+	uint8_t col3 = SEGMENT_WIDTH+SEGMENT_LENGTH;
 	uint8_t row1 = 0;
-	uint8_t row2 = 2;
-	uint8_t row3 = 12;
-	uint8_t row4 = 14;
-	uint8_t row5 = 24;
+	uint8_t row2 = SEGMENT_WIDTH;
+	uint8_t row3 = SEGMENT_WIDTH+SEGMENT_LENGTH;
+	uint8_t row4 = 2*SEGMENT_WIDTH+SEGMENT_LENGTH;
+	uint8_t row5 = 2*SEGMENT_WIDTH+2*SEGMENT_LENGTH;
 	if (segmentNum==0) {
 		drawHoSegment(col2,row1);
 	}
@@ -142,7 +142,124 @@ drawSegment(uint8_t segmentNum)
 	}
 }
 
+void 
+drawChar(uint8_t charNum) {
+	bool segMap[7];
+	switch (charNum) {
+		case 0:
+		segMap[0] = 1;
+		segMap[1] = 1;
+		segMap[2] = 1;
+		segMap[3] = 1;
+		segMap[4] = 1;
+		segMap[5] = 1;
+		segMap[6] = 0;
+		break;
+		case 1:
+		segMap[0] = 0;
+		segMap[1] = 1;
+		segMap[2] = 1;
+		segMap[3] = 0;
+		segMap[4] = 0;
+		segMap[5] = 0;
+		segMap[6] = 0;
+		break;
+		case 2:
+		segMap[0] = 1;
+		segMap[1] = 1;
+		segMap[2] = 0;
+		segMap[3] = 1;
+		segMap[4] = 1;
+		segMap[5] = 0;
+		segMap[6] = 1;
+		break;
+		case 3:
+		segMap[0] = 1;
+		segMap[1] = 1;
+		segMap[2] = 1;
+		segMap[3] = 1;
+		segMap[4] = 0;
+		segMap[5] = 0;
+		segMap[6] = 1;
+		break;
+		case 4:
+		segMap[0] = 0;
+		segMap[1] = 1;
+		segMap[2] = 1;
+		segMap[3] = 0;
+		segMap[4] = 0;
+		segMap[5] = 1;
+		segMap[6] = 1;
+		break;
+		case 5:
+		segMap[0] = 1;
+		segMap[1] = 0;
+		segMap[2] = 1;
+		segMap[3] = 1;
+		segMap[4] = 0;
+		segMap[5] = 1;
+		segMap[6] = 1;
+		break;
+		case 6:
+		segMap[0] = 1;
+		segMap[1] = 0;
+		segMap[2] = 1;
+		segMap[3] = 1;
+		segMap[4] = 1;
+		segMap[5] = 1;
+		segMap[6] = 1;
+		break;
+		case 7:
+		segMap[0] = 1;
+		segMap[1] = 1;
+		segMap[2] = 1;
+		segMap[3] = 0;
+		segMap[4] = 0;
+		segMap[5] = 0;
+		segMap[6] = 0;
+		break;
+		case 8:
+		segMap[0] = 1;
+		segMap[1] = 1;
+		segMap[2] = 1;
+		segMap[3] = 1;
+		segMap[4] = 1;
+		segMap[5] = 1;
+		segMap[6] = 1;
+		break;
+		case 9:
+		segMap[0] = 1;
+		segMap[1] = 1;
+		segMap[2] = 1;
+		segMap[3] = 1;
+		segMap[4] = 0;
+		segMap[5] = 1;
+		segMap[6] = 1;
+		break;
+	}
 
+	if (segMap[0]) {
+		drawSegment(0);
+	}
+	if (segMap[1]) {
+		drawSegment(1);
+	}
+	if (segMap[2]) {
+		drawSegment(2);
+	}
+	if (segMap[3]) {
+		drawSegment(3);
+	}
+	if (segMap[4]) {
+		drawSegment(4);
+	}
+	if (segMap[5]) {
+		drawSegment(5);
+	}
+	if (segMap[6]) {
+		drawSegment(6);
+	}
+}
 
 
 
@@ -269,19 +386,96 @@ devSSD1331init(void)
 
 	// drawVertSegment(0,SEGMENT_WIDTH+SEGMENT_GAP);
 	// drawHoSegment(SEGMENT_WIDTH+SEGMENT_GAP,0);
-	drawSegment(0);
-	OSA_TimeDelay(500);
-	drawSegment(1);
-	OSA_TimeDelay(500);
-	drawSegment(2);
-	OSA_TimeDelay(500);
-	drawSegment(3);
-	OSA_TimeDelay(500);
-	drawSegment(4);
-	OSA_TimeDelay(500);
-	drawSegment(5);
-	OSA_TimeDelay(500);
-	drawSegment(6);
+	// drawSegment(0);
+	// drawSegment(1);
+	// drawSegment(2);
+	// drawSegment(3);
+	// drawSegment(4);
+	// drawSegment(5);
+	// drawSegment(6);
+	while (1) {
+
+	drawChar(0);
+	OSA_TimeDelay(100);
+	// Clear Screen
+	writeCommand(kSSD1331CommandCLEAR);
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x5F);
+	writeCommand(0x3F);
+	drawChar(1);
+	OSA_TimeDelay(100);
+	// Clear Screen
+	writeCommand(kSSD1331CommandCLEAR);
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x5F);
+	writeCommand(0x3F);
+	drawChar(2);
+	OSA_TimeDelay(100);
+	// Clear Screen
+	writeCommand(kSSD1331CommandCLEAR);
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x5F);
+	writeCommand(0x3F);
+	drawChar(3);
+	OSA_TimeDelay(100);
+	// Clear Screen
+	writeCommand(kSSD1331CommandCLEAR);
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x5F);
+	writeCommand(0x3F);
+	drawChar(4);
+	OSA_TimeDelay(100);
+	// Clear Screen
+	writeCommand(kSSD1331CommandCLEAR);
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x5F);
+	writeCommand(0x3F);
+	drawChar(5);
+	OSA_TimeDelay(100);
+	// Clear Screen
+	writeCommand(kSSD1331CommandCLEAR);
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x5F);
+	writeCommand(0x3F);
+	drawChar(6);
+	OSA_TimeDelay(100);
+	// Clear Screen
+	writeCommand(kSSD1331CommandCLEAR);
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x5F);
+	writeCommand(0x3F);
+	drawChar(7);
+	OSA_TimeDelay(100);
+	// Clear Screen
+	writeCommand(kSSD1331CommandCLEAR);
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x5F);
+	writeCommand(0x3F);
+	drawChar(8);
+	OSA_TimeDelay(100);
+	// Clear Screen
+	writeCommand(kSSD1331CommandCLEAR);
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x5F);
+	writeCommand(0x3F);
+	drawChar(9);
+	OSA_TimeDelay(100);
+	// Clear Screen
+	writeCommand(kSSD1331CommandCLEAR);
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x5F);
+	writeCommand(0x3F);
+	}
 	
 
 	return 0;
