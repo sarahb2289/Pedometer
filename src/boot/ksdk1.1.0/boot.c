@@ -63,10 +63,16 @@
 #include "SEGGER_RTT.h"
 #include "devSSD1331.h"
 
-
+// #define SEGMENT_WIDTH 2
+// #define SEGMENT_LENGTH 10
+// #define SEGMENT_GAP 1
+#define XOFFSET 0
+#define YOFFSET 10
+#define CHARWIDTH 18
 #define							kWarpConstantStringI2cFailure		"\rI2C failed, reg 0x%02x, code %d\n"
 #define							kWarpConstantStringErrorInvalidVoltage	"\rInvalid supply voltage [%d] mV!"
 #define							kWarpConstantStringErrorSanity		"\rSanity check failed!"
+
 
 
 #if (WARP_BUILD_ENABLE_DEVADXL362)
@@ -2026,6 +2032,37 @@ main(void)
 	
 	// warpDisableSPIpins();
 	devSSD1331init();
+
+	uint32_t count = 0;
+	
+	while (1) {
+
+		uint8_t digits[] = {0,0,0,0,0};
+		if (count>99999){
+			count = 0;
+		}
+		uint8_t digiti = 0;
+		uint32_t number = count;
+		while (number>0) {
+			digits[4-digiti] = number%10;
+			number /= 10;
+			digiti += 1;
+		} 
+		count += 1;
+
+		
+		for (int i=4;i>=0;i--) {
+		drawChar(digits[i],XOFFSET+i*CHARWIDTH,YOFFSET);
+		}
+		OSA_TimeDelay(100);
+		// Clear Screen
+		writetoOLED(kSSD1331CommandCLEAR);
+		writetoOLED(0x00);
+		writetoOLED(0x00);
+		writetoOLED(0x5F);
+		writetoOLED(0x3F);
+
+	}
 	
 	while (1)
 	{

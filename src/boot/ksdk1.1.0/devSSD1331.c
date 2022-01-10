@@ -16,6 +16,9 @@
 #define SEGMENT_WIDTH 2
 #define SEGMENT_LENGTH 10
 #define SEGMENT_GAP 1
+#define XOFFSET 0
+#define YOFFSET 10
+#define CHARWIDTH 18
 
 
 volatile uint8_t	inBuffer[32];
@@ -36,8 +39,8 @@ enum
 	kSSD1331PinRST		= GPIO_MAKE_PIN(HW_GPIOB, 0),
 };
 
-static int
-writeCommand(uint8_t commandByte)
+int
+writetoOLED(uint8_t commandByte)
 {
 	spi_status_t status;
 
@@ -74,22 +77,22 @@ writeCommand(uint8_t commandByte)
 void
 writeColour(void)
 {
-	writeCommand(0x00);	
-	writeCommand(0xFF);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0xFF);
-	writeCommand(0x00);
+	writetoOLED(0x00);	
+	writetoOLED(0xFF);
+	writetoOLED(0x00);
+	writetoOLED(0x00);
+	writetoOLED(0xFF);
+	writetoOLED(0x00);
 }
 
 void 
 drawVertSegment(uint8_t topLeftX, uint8_t topLeftY)
 {
-	writeCommand(kSSD1331CommandDRAWRECT);
-	writeCommand(topLeftX);
-	writeCommand(topLeftY);
-	writeCommand(topLeftX+SEGMENT_WIDTH-1);
-	writeCommand(topLeftY+SEGMENT_LENGTH-1);
+	writetoOLED(kSSD1331CommandDRAWRECT);
+	writetoOLED(topLeftX);
+	writetoOLED(topLeftY);
+	writetoOLED(topLeftX+SEGMENT_WIDTH-1);
+	writetoOLED(topLeftY+SEGMENT_LENGTH-1);
 	writeColour();
 	
 }
@@ -97,11 +100,11 @@ drawVertSegment(uint8_t topLeftX, uint8_t topLeftY)
 void 
 drawHoSegment(uint8_t topLeftX, uint8_t topLeftY)
 {
-	writeCommand(kSSD1331CommandDRAWRECT);
-	writeCommand(topLeftX);
-	writeCommand(topLeftY);
-	writeCommand(topLeftX+SEGMENT_LENGTH-1);
-	writeCommand(topLeftY+SEGMENT_WIDTH-1);
+	writetoOLED(kSSD1331CommandDRAWRECT);
+	writetoOLED(topLeftX);
+	writetoOLED(topLeftY);
+	writetoOLED(topLeftX+SEGMENT_LENGTH-1);
+	writetoOLED(topLeftY+SEGMENT_WIDTH-1);
 	writeColour();
 	
 }
@@ -296,78 +299,92 @@ devSSD1331init(void)
 	GPIO_DRV_SetPinOutput(kSSD1331PinRST);
 	OSA_TimeDelay(100);
 
+	// /*
+	//  *	Drive /CS low.
+	//  *
+	//  *	Make sure there is a high-to-low transition by first driving high, delay, then drive low.
+	//  */
+	// GPIO_DRV_SetPinOutput(kSSD1331PinCSn);
+	// OSA_TimeDelay(10);
+	// GPIO_DRV_ClearPinOutput(kSSD1331PinCSn);
+
+	// /*
+	//  *	Drive DC low (command).
+	//  */
+	// GPIO_DRV_ClearPinOutput(kSSD1331PinDC);
+
 	/*
 	 *	Initialization sequence, borrowed from https://github.com/adafruit/Adafruit-SSD1331-OLED-Driver-Library-for-Arduino
 	 */
-	writeCommand(kSSD1331CommandDISPLAYOFF);	// 0xAE
-	writeCommand(kSSD1331CommandSETREMAP);		// 0xA0
-	writeCommand(0x72);				// RGB Color
-	writeCommand(kSSD1331CommandSTARTLINE);		// 0xA1
-	writeCommand(0x0);
-	writeCommand(kSSD1331CommandDISPLAYOFFSET);	// 0xA2
-	writeCommand(0x0);
-	writeCommand(kSSD1331CommandNORMALDISPLAY);	// 0xA4
-	writeCommand(kSSD1331CommandSETMULTIPLEX);	// 0xA8
-	writeCommand(0x3F);				// 0x3F 1/64 duty
-	writeCommand(kSSD1331CommandSETMASTER);		// 0xAD
-	writeCommand(0x8E);
-	writeCommand(kSSD1331CommandPOWERMODE);		// 0xB0
-	writeCommand(0x0B);
-	writeCommand(kSSD1331CommandPRECHARGE);		// 0xB1
-	writeCommand(0x31);
-	writeCommand(kSSD1331CommandCLOCKDIV);		// 0xB3
-	writeCommand(0xF0);				// 7:4 = Oscillator Frequency, 3:0 = CLK Div Ratio (A[3:0]+1 = 1..16)
-	writeCommand(kSSD1331CommandPRECHARGEA);	// 0x8A
-	writeCommand(0x64);
-	writeCommand(kSSD1331CommandPRECHARGEB);	// 0x8B
-	writeCommand(0x78);
-	writeCommand(kSSD1331CommandPRECHARGEA);	// 0x8C
-	writeCommand(0x64);
-	writeCommand(kSSD1331CommandPRECHARGELEVEL);	// 0xBB
-	writeCommand(0x3A);
-	writeCommand(kSSD1331CommandVCOMH);		// 0xBE
-	writeCommand(0x3E);
-	writeCommand(kSSD1331CommandMASTERCURRENT);	// 0x87
-	writeCommand(0x06);
-	writeCommand(kSSD1331CommandCONTRASTA);		// 0x81
-	writeCommand(0x91);
-	writeCommand(kSSD1331CommandCONTRASTB);		// 0x82
-	writeCommand(0x50);
-	writeCommand(kSSD1331CommandCONTRASTC);		// 0x83
-	writeCommand(0x7D);
-	writeCommand(kSSD1331CommandDISPLAYON);		// Turn on oled panel
+	writetoOLED(kSSD1331CommandDISPLAYOFF);	// 0xAE
+	writetoOLED(kSSD1331CommandSETREMAP);		// 0xA0
+	writetoOLED(0x72);				// RGB Color
+	writetoOLED(kSSD1331CommandSTARTLINE);		// 0xA1
+	writetoOLED(0x0);
+	writetoOLED(kSSD1331CommandDISPLAYOFFSET);	// 0xA2
+	writetoOLED(0x0);
+	writetoOLED(kSSD1331CommandNORMALDISPLAY);	// 0xA4
+	writetoOLED(kSSD1331CommandSETMULTIPLEX);	// 0xA8
+	writetoOLED(0x3F);				// 0x3F 1/64 duty
+	writetoOLED(kSSD1331CommandSETMASTER);		// 0xAD
+	writetoOLED(0x8E);
+	writetoOLED(kSSD1331CommandPOWERMODE);		// 0xB0
+	writetoOLED(0x0B);
+	writetoOLED(kSSD1331CommandPRECHARGE);		// 0xB1
+	writetoOLED(0x31);
+	writetoOLED(kSSD1331CommandCLOCKDIV);		// 0xB3
+	writetoOLED(0xF0);				// 7:4 = Oscillator Frequency, 3:0 = CLK Div Ratio (A[3:0]+1 = 1..16)
+	writetoOLED(kSSD1331CommandPRECHARGEA);	// 0x8A
+	writetoOLED(0x64);
+	writetoOLED(kSSD1331CommandPRECHARGEB);	// 0x8B
+	writetoOLED(0x78);
+	writetoOLED(kSSD1331CommandPRECHARGEA);	// 0x8C
+	writetoOLED(0x64);
+	writetoOLED(kSSD1331CommandPRECHARGELEVEL);	// 0xBB
+	writetoOLED(0x3A);
+	writetoOLED(kSSD1331CommandVCOMH);		// 0xBE
+	writetoOLED(0x3E);
+	writetoOLED(kSSD1331CommandMASTERCURRENT);	// 0x87
+	writetoOLED(0x06);
+	writetoOLED(kSSD1331CommandCONTRASTA);		// 0x81
+	writetoOLED(0x91);
+	writetoOLED(kSSD1331CommandCONTRASTB);		// 0x82
+	writetoOLED(0x50);
+	writetoOLED(kSSD1331CommandCONTRASTC);		// 0x83
+	writetoOLED(0x7D);
+	writetoOLED(kSSD1331CommandDISPLAYON);		// Turn on oled panel
 
 	/*
 	 *	To use fill commands, you will have to issue a command to the display to enable them. See the manual.
 	 */
-	writeCommand(kSSD1331CommandFILL);
-	writeCommand(0x01);
+	writetoOLED(kSSD1331CommandFILL);
+	writetoOLED(0x01);
 
 	/*
 	 *	Clear Screen
 	 */
-	writeCommand(kSSD1331CommandCLEAR);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0x5F);
-	writeCommand(0x3F);
+	writetoOLED(kSSD1331CommandCLEAR);
+	writetoOLED(0x00);
+	writetoOLED(0x00);
+	writetoOLED(0x5F);
+	writetoOLED(0x3F);
 
 
 
 	/*
 	 *	Any post-initialization drawing commands go here.
 	 */
-	writeCommand(kSSD1331CommandDRAWRECT);		//0x22
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0x5F);
-	writeCommand(0x3F);
-	writeCommand(0x00);
-	writeCommand(0xFF);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0xFF);
-	writeCommand(0x00);
+	writetoOLED(kSSD1331CommandDRAWRECT);		//0x22
+	writetoOLED(0x00);
+	writetoOLED(0x00);
+	writetoOLED(0x5F);
+	writetoOLED(0x3F);
+	writetoOLED(0x00);
+	writetoOLED(0xFF);
+	writetoOLED(0x00);
+	writetoOLED(0x00);
+	writetoOLED(0xFF);
+	writetoOLED(0x00);
 
 	// Wait 1 second
 	OSA_TimeDelay(1000);
@@ -376,11 +393,11 @@ devSSD1331init(void)
 	* Clear Screen
 	*/
 
-	writeCommand(kSSD1331CommandCLEAR);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0x5F);
-	writeCommand(0x3F);
+	writetoOLED(kSSD1331CommandCLEAR);
+	writetoOLED(0x00);
+	writetoOLED(0x00);
+	writetoOLED(0x5F);
+	writetoOLED(0x3F);
 
 	// Draw line
 
@@ -393,101 +410,118 @@ devSSD1331init(void)
 	// drawSegment(4);
 	// drawSegment(5);
 	// drawSegment(6);
-	while (1) {
-	uint8_t xoffset;
-	uint8_t yoffset;
-	uint8_t charWidth = 20;
 
-
-	xoffset = 0;
-	yoffset = 10;
-	drawChar(0,xoffset,yoffset);
-	drawChar(1,xoffset+charWidth,yoffset);
-	drawChar(2,xoffset+2*charWidth,yoffset);
-	drawChar(3,xoffset+3*charWidth,yoffset);
-	drawChar(4,xoffset+4*charWidth,yoffset);
-	OSA_TimeDelay(100);
-	// Clear Screen
-	writeCommand(kSSD1331CommandCLEAR);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0x5F);
-	writeCommand(0x3F);
-
-	// drawChar(1,0,0);
-	// OSA_TimeDelay(100);
-	// // Clear Screen
-	// writeCommand(kSSD1331CommandCLEAR);
-	// writeCommand(0x00);
-	// writeCommand(0x00);
-	// writeCommand(0x5F);
-	// writeCommand(0x3F);
-	// drawChar(2,0,0);
-	// OSA_TimeDelay(100);
-	// // Clear Screen
-	// writeCommand(kSSD1331CommandCLEAR);
-	// writeCommand(0x00);
-	// writeCommand(0x00);
-	// writeCommand(0x5F);
-	// writeCommand(0x3F);
-	// drawChar(3,0,0);
-	// OSA_TimeDelay(100);
-	// // Clear Screen
-	// writeCommand(kSSD1331CommandCLEAR);
-	// writeCommand(0x00);
-	// writeCommand(0x00);
-	// writeCommand(0x5F);
-	// writeCommand(0x3F);
-	// drawChar(4,0,0);
-	// OSA_TimeDelay(100);
-	// // Clear Screen
-	// writeCommand(kSSD1331CommandCLEAR);
-	// writeCommand(0x00);
-	// writeCommand(0x00);
-	// writeCommand(0x5F);
-	// writeCommand(0x3F);
-	// drawChar(5,0,0);
-	// OSA_TimeDelay(100);
-	// // Clear Screen
-	// writeCommand(kSSD1331CommandCLEAR);
-	// writeCommand(0x00);
-	// writeCommand(0x00);
-	// writeCommand(0x5F);
-	// writeCommand(0x3F);
-	// drawChar(6,0,0);
-	// OSA_TimeDelay(100);
-	// // Clear Screen
-	// writeCommand(kSSD1331CommandCLEAR);
-	// writeCommand(0x00);
-	// writeCommand(0x00);
-	// writeCommand(0x5F);
-	// writeCommand(0x3F);
-	// drawChar(7,0,0);
-	// OSA_TimeDelay(100);
-	// // Clear Screen
-	// writeCommand(kSSD1331CommandCLEAR);
-	// writeCommand(0x00);
-	// writeCommand(0x00);
-	// writeCommand(0x5F);
-	// writeCommand(0x3F);
-	// drawChar(8,0,0);
-	// OSA_TimeDelay(100);
-	// // Clear Screen
-	// writeCommand(kSSD1331CommandCLEAR);
-	// writeCommand(0x00);
-	// writeCommand(0x00);
-	// writeCommand(0x5F);
-	// writeCommand(0x3F);
-	// drawChar(9,0,0);
-	// OSA_TimeDelay(100);
-	// // Clear Screen
-	// writeCommand(kSSD1331CommandCLEAR);
-	// writeCommand(0x00);
-	// writeCommand(0x00);
-	// writeCommand(0x5F);
-	// writeCommand(0x3F);
-	}
+	// uint32_t count = 0;
 	
+	// while (1) {
 
+	// 	uint8_t digits[] = {0,0,0,0,0};
+	// 	if (count>99999){
+	// 		count = 0;
+	// 	}
+	// 	uint8_t digiti = 0;
+	// 	uint32_t number = count;
+	// 	while (number>0) {
+	// 		digits[4-digiti] = number%10;
+	// 		number /= 10;
+	// 		digiti += 1;
+	// 	} 
+	// 	count += 1;
+
+		
+		
+	// 	drawChar(digits[4],XOFFSET+4*CHARWIDTH,YOFFSET);
+	// 	drawChar(digits[3],XOFFSET+3*CHARWIDTH,YOFFSET);
+	// 	drawChar(digits[2],XOFFSET+2*CHARWIDTH,YOFFSET);
+	// 	drawChar(digits[1],XOFFSET+CHARWIDTH,YOFFSET);
+	// 	drawChar(digits[0],XOFFSET,YOFFSET);
+	// 	OSA_TimeDelay(100);
+	// 	// Clear Screen
+	// 	writetoOLED(kSSD1331CommandCLEAR);
+	// 	writetoOLED(0x00);
+	// 	writetoOLED(0x00);
+	// 	writetoOLED(0x5F);
+	// 	writetoOLED(0x3F);
+
+		// drawChar(1,0,0);
+		// OSA_TimeDelay(100);
+		// // Clear Screen
+		// writetoOLED(kSSD1331CommandCLEAR);
+		// writetoOLED(0x00);
+		// writetoOLED(0x00);
+		// writetoOLED(0x5F);
+		// writetoOLED(0x3F);
+		// drawChar(2,0,0);
+		// OSA_TimeDelay(100);
+		// // Clear Screen
+		// writetoOLED(kSSD1331CommandCLEAR);
+		// writetoOLED(0x00);
+		// writetoOLED(0x00);
+		// writetoOLED(0x5F);
+		// writetoOLED(0x3F);
+		// drawChar(3,0,0);
+		// OSA_TimeDelay(100);
+		// // Clear Screen
+		// writetoOLED(kSSD1331CommandCLEAR);
+		// writetoOLED(0x00);
+		// writetoOLED(0x00);
+		// writetoOLED(0x5F);
+		// writetoOLED(0x3F);
+		// drawChar(4,0,0);
+		// OSA_TimeDelay(100);
+		// // Clear Screen
+		// writetoOLED(kSSD1331CommandCLEAR);
+		// writetoOLED(0x00);
+		// writetoOLED(0x00);
+		// writetoOLED(0x5F);
+		// writetoOLED(0x3F);
+		// drawChar(5,0,0);
+		// OSA_TimeDelay(100);
+		// // Clear Screen
+		// writetoOLED(kSSD1331CommandCLEAR);
+		// writetoOLED(0x00);
+		// writetoOLED(0x00);
+		// writetoOLED(0x5F);
+		// writetoOLED(0x3F);
+		// drawChar(6,0,0);
+		// OSA_TimeDelay(100);
+		// // Clear Screen
+		// writetoOLED(kSSD1331CommandCLEAR);
+		// writetoOLED(0x00);
+		// writetoOLED(0x00);
+		// writetoOLED(0x5F);
+		// writetoOLED(0x3F);
+		// drawChar(7,0,0);
+		// OSA_TimeDelay(100);
+		// // Clear Screen
+		// writetoOLED(kSSD1331CommandCLEAR);
+		// writetoOLED(0x00);
+		// writetoOLED(0x00);
+		// writetoOLED(0x5F);
+		// writetoOLED(0x3F);
+		// drawChar(8,0,0);
+		// OSA_TimeDelay(100);
+		// // Clear Screen
+		// writetoOLED(kSSD1331CommandCLEAR);
+		// writetoOLED(0x00);
+		// writetoOLED(0x00);
+		// writetoOLED(0x5F);
+		// writetoOLED(0x3F);
+		// drawChar(9,0,0);
+		// OSA_TimeDelay(100);
+		// // Clear Screen
+		// writetoOLED(kSSD1331CommandCLEAR);
+		// writetoOLED(0x00);
+		// writetoOLED(0x00);
+		// writetoOLED(0x5F);
+		// writetoOLED(0x3F);
+	
+	
+	// /*
+	//  *	Drive /CS high
+	//  */
+	// GPIO_DRV_SetPinOutput(kSSD1331PinCSn);
+
+	// }
 	return 0;
 }

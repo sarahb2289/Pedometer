@@ -1,3 +1,6 @@
+#ifndef __DEV_SSD1331_DOT_H__
+#define __DEV_SSD1331_DOT_H__
+
 /*
  *	See https://github.com/adafruit/Adafruit-SSD1331-OLED-Driver-Library-for-Arduino for the Arduino driver.
  */
@@ -42,4 +45,13 @@ typedef enum
 	kSSD1331CommandVCOMH		= 0xBE,
 } SSD1331Commands;
 
+int writetoOLED(uint8_t commandByte);
+void writeColour(void);
+void drawVertSegment(uint8_t topLeftX, uint8_t topLeftY);
+void drawHoSegment(uint8_t topLeftX, uint8_t topLeftY);
+void drawSegment(uint8_t segmentNum,uint8_t xoffset,uint8_t yoffset);
+void drawChar(uint8_t charNum,uint8_t xoffset,uint8_t yoffset);
+
 int	devSSD1331init(void);
+
+#endif
