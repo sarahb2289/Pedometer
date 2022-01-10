@@ -15,7 +15,7 @@
 
 #define SEGMENT_WIDTH 2
 #define SEGMENT_LENGTH 10
-#define SEGMENT_GAP 1 
+#define SEGMENT_GAP 1
 
 
 volatile uint8_t	inBuffer[32];
@@ -88,8 +88,8 @@ drawVertSegment(uint8_t topLeftX, uint8_t topLeftY)
 	writeCommand(kSSD1331CommandDRAWRECT);
 	writeCommand(topLeftX);
 	writeCommand(topLeftY);
-	writeCommand(topLeftX+SEGMENT_WIDTH);
-	writeCommand(topLeftY+SEGMENT_LENGTH);
+	writeCommand(topLeftX+SEGMENT_WIDTH-1);
+	writeCommand(topLeftY+SEGMENT_LENGTH-1);
 	writeColour();
 	
 }
@@ -100,8 +100,8 @@ drawHoSegment(uint8_t topLeftX, uint8_t topLeftY)
 	writeCommand(kSSD1331CommandDRAWRECT);
 	writeCommand(topLeftX);
 	writeCommand(topLeftY);
-	writeCommand(topLeftX+SEGMENT_LENGTH);
-	writeCommand(topLeftY+SEGMENT_WIDTH);
+	writeCommand(topLeftX+SEGMENT_LENGTH-1);
+	writeCommand(topLeftY+SEGMENT_WIDTH-1);
 	writeColour();
 	
 }
@@ -111,26 +111,34 @@ drawSegment(uint8_t segmentNum)
 {
 	uint8_t vertSegments[] = {1,2,4,5};
 	uint8_t hoSegments[] = {0,3,6};
+	uint8_t col1 = 0;
+	uint8_t col2 = 2;
+	uint8_t col3 = 12;
+	uint8_t row1 = 0;
+	uint8_t row2 = 2;
+	uint8_t row3 = 12;
+	uint8_t row4 = 14;
+	uint8_t row5 = 24;
 	if (segmentNum==0) {
-		drawHoSegment(SEGMENT_WIDTH,0);
+		drawHoSegment(col2,row1);
 	}
 	if (segmentNum==1) {
-		drawVertSegment(2*SEGMENT_WIDTH+SEGMENT_LENGTH,SEGMENT_WIDTH);
+		drawVertSegment(col3,row2);
 	}
 	if (segmentNum==2) {
-		drawVertSegment(2*SEGMENT_WIDTH+SEGMENT_LENGTH,2*SEGMENT_WIDTH);
+		drawVertSegment(col3,row4);
 	}
 	if (segmentNum==3) {
-		drawHoSegment(SEGMENT_WIDTH,2*SEGMENT_WIDTH+2*SEGMENT_LENGTH);
+		drawHoSegment(col2,row5);
 	}
 	if (segmentNum==4) {
-		drawVertSegment(0,2*SEGMENT_WIDTH+SEGMENT_LENGTH);
+		drawVertSegment(col1,row4);
 	}
 	if (segmentNum==5) {
-		drawVertSegment(0,SEGMENT_WIDTH);
+		drawVertSegment(col1,row2);
 	}
 	if (segmentNum==6) {
-		drawHoSegment(SEGMENT_WIDTH,SEGMENT_WIDTH+SEGMENT_LENGTH);
+		drawHoSegment(col2,row3);
 	}
 }
 
@@ -262,18 +270,18 @@ devSSD1331init(void)
 	// drawVertSegment(0,SEGMENT_WIDTH+SEGMENT_GAP);
 	// drawHoSegment(SEGMENT_WIDTH+SEGMENT_GAP,0);
 	drawSegment(0);
-	// OSA_TimeDelay(500);
-	// drawSegment(1);
-	// OSA_TimeDelay(500);
-	// drawSegment(2);
-	// OSA_TimeDelay(500);
-	// drawSegment(3);
-	// OSA_TimeDelay(500);
-	// drawSegment(4);
-	// OSA_TimeDelay(500);
-	// drawSegment(5);
-	// OSA_TimeDelay(500);
-	// drawSegment(6);
+	OSA_TimeDelay(500);
+	drawSegment(1);
+	OSA_TimeDelay(500);
+	drawSegment(2);
+	OSA_TimeDelay(500);
+	drawSegment(3);
+	OSA_TimeDelay(500);
+	drawSegment(4);
+	OSA_TimeDelay(500);
+	drawSegment(5);
+	OSA_TimeDelay(500);
+	drawSegment(6);
 	
 
 	return 0;
