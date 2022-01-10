@@ -2034,6 +2034,17 @@ main(void)
 	devSSD1331init();
 
 	uint32_t count = 0;
+	uint16_t xAccelMSB;
+	uint16_t xAccelLSB;
+	int16_t xAccelCombined;
+	uint16_t yAccelMSB;
+	uint16_t yAccelLSB;
+	int16_t yAccelCombined;
+	uint16_t zAccelMSB;
+	uint16_t zAccelLSB;
+	int16_t zAccelCombined;
+	WarpStatus i2cReadStatus;
+
 	
 	while (1) {
 
@@ -2054,14 +2065,42 @@ main(void)
 		for (int i=4;i>=0;i--) {
 		drawChar(digits[i],XOFFSET+i*CHARWIDTH,YOFFSET);
 		}
-		OSA_TimeDelay(100);
+		OSA_TimeDelay(1000);
 		// Clear Screen
 		writetoOLED(kSSD1331CommandCLEAR);
 		writetoOLED(0x00);
 		writetoOLED(0x00);
 		writetoOLED(0x5F);
 		writetoOLED(0x3F);
+		// i2cReadStatus = readSensorRegisterMMA8451Q(kWarpSensorOutputRegisterMMA8451QOUT_X_MSB, 2 /* numberOfBytes */);
+		// xAccelMSB = deviceMMA8451QState.i2cBuffer[0];
+		// xAccelLSB = deviceMMA8451QState.i2cBuffer[1];
+		// xAccelCombined = ((xAccelMSB & 0xFF) << 6) | (xAccelLSB >> 2);
+		// /*
+		//  *	Sign extend the 14-bit value based on knowledge that upper 2 bit are 0:
+		//  */
+		// xAccelCombined = (xAccelCombined ^ (1 << 13)) - (1 << 13);
+		// warpPrint(" %d,", xAccelCombined);
+		// i2cReadStatus = readSensorRegisterMMA8451Q(kWarpSensorOutputRegisterMMA8451QOUT_Y_MSB, 2 /* numberOfBytes */);
+		// yAccelMSB = deviceMMA8451QState.i2cBuffer[0];
+		// yAccelLSB = deviceMMA8451QState.i2cBuffer[1];
+		// yAccelCombined = ((yAccelMSB & 0xFF) << 6) | (yAccelLSB >> 2);
+		// /*
+		//  *	Sign extend the 14-bit value based on knowledge that upper 2 bit are 0:
+		//  */
+		// yAccelCombined = (yAccelCombined ^ (1 << 13)) - (1 << 13);
+		// warpPrint(" %d,", yAccelCombined);
+		// i2cReadStatus = readSensorRegisterMMA8451Q(kWarpSensorOutputRegisterMMA8451QOUT_Z_MSB, 2 /* numberOfBytes */);
+		// zAccelMSB = deviceMMA8451QState.i2cBuffer[0];
+		// zAccelLSB = deviceMMA8451QState.i2cBuffer[1];
+		// zAccelCombined = ((zAccelMSB & 0xFF) << 6) | (zAccelLSB >> 2);
+		// /*
+		//  *	Sign extend the 14-bit value based on knowledge that upper 2 bit are 0:
+		//  */
+		// zAccelCombined = (zAccelCombined ^ (1 << 13)) - (1 << 13);
+		// warpPrint(" %d,", zAccelCombined);
 
+	
 	}
 	
 	while (1)
