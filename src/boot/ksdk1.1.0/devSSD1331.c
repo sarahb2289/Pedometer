@@ -47,7 +47,7 @@ writeCommand(uint8_t commandByte)
 	 *	Make sure there is a high-to-low transition by first driving high, delay, then drive low.
 	 */
 	GPIO_DRV_SetPinOutput(kSSD1331PinCSn);
-	OSA_TimeDelay(10);
+	OSA_TimeDelay(1);
 	GPIO_DRV_ClearPinOutput(kSSD1331PinCSn);
 
 	/*
@@ -107,18 +107,18 @@ drawHoSegment(uint8_t topLeftX, uint8_t topLeftY)
 }
 
 void 
-drawSegment(uint8_t segmentNum)
+drawSegment(uint8_t segmentNum,uint8_t xoffset,uint8_t yoffset)
 {
 	uint8_t vertSegments[] = {1,2,4,5};
 	uint8_t hoSegments[] = {0,3,6};
-	uint8_t col1 = 0;
-	uint8_t col2 = SEGMENT_WIDTH;
-	uint8_t col3 = SEGMENT_WIDTH+SEGMENT_LENGTH;
-	uint8_t row1 = 0;
-	uint8_t row2 = SEGMENT_WIDTH;
-	uint8_t row3 = SEGMENT_WIDTH+SEGMENT_LENGTH;
-	uint8_t row4 = 2*SEGMENT_WIDTH+SEGMENT_LENGTH;
-	uint8_t row5 = 2*SEGMENT_WIDTH+2*SEGMENT_LENGTH;
+	uint8_t col1 = xoffset;
+	uint8_t col2 = xoffset+SEGMENT_WIDTH;
+	uint8_t col3 = xoffset+SEGMENT_WIDTH+SEGMENT_LENGTH;
+	uint8_t row1 = yoffset;
+	uint8_t row2 = yoffset+SEGMENT_WIDTH;
+	uint8_t row3 = yoffset+SEGMENT_WIDTH+SEGMENT_LENGTH;
+	uint8_t row4 = yoffset+2*SEGMENT_WIDTH+SEGMENT_LENGTH;
+	uint8_t row5 = yoffset+2*SEGMENT_WIDTH+2*SEGMENT_LENGTH;
 	if (segmentNum==0) {
 		drawHoSegment(col2,row1);
 	}
@@ -143,7 +143,7 @@ drawSegment(uint8_t segmentNum)
 }
 
 void 
-drawChar(uint8_t charNum) {
+drawChar(uint8_t charNum,uint8_t xoffset,uint8_t yoffset) {
 	bool segMap[7];
 	switch (charNum) {
 		case 0:
@@ -239,25 +239,25 @@ drawChar(uint8_t charNum) {
 	}
 
 	if (segMap[0]) {
-		drawSegment(0);
+		drawSegment(0,xoffset,yoffset);
 	}
 	if (segMap[1]) {
-		drawSegment(1);
+		drawSegment(1,xoffset,yoffset);
 	}
 	if (segMap[2]) {
-		drawSegment(2);
+		drawSegment(2,xoffset,yoffset);
 	}
 	if (segMap[3]) {
-		drawSegment(3);
+		drawSegment(3,xoffset,yoffset);
 	}
 	if (segMap[4]) {
-		drawSegment(4);
+		drawSegment(4,xoffset,yoffset);
 	}
 	if (segMap[5]) {
-		drawSegment(5);
+		drawSegment(5,xoffset,yoffset);
 	}
 	if (segMap[6]) {
-		drawSegment(6);
+		drawSegment(6,xoffset,yoffset);
 	}
 }
 
@@ -394,8 +394,18 @@ devSSD1331init(void)
 	// drawSegment(5);
 	// drawSegment(6);
 	while (1) {
+	uint8_t xoffset;
+	uint8_t yoffset;
+	uint8_t charWidth = 20;
 
-	drawChar(0);
+
+	xoffset = 0;
+	yoffset = 10;
+	drawChar(0,xoffset,yoffset);
+	drawChar(1,xoffset+charWidth,yoffset);
+	drawChar(2,xoffset+2*charWidth,yoffset);
+	drawChar(3,xoffset+3*charWidth,yoffset);
+	drawChar(4,xoffset+4*charWidth,yoffset);
 	OSA_TimeDelay(100);
 	// Clear Screen
 	writeCommand(kSSD1331CommandCLEAR);
@@ -403,78 +413,79 @@ devSSD1331init(void)
 	writeCommand(0x00);
 	writeCommand(0x5F);
 	writeCommand(0x3F);
-	drawChar(1);
-	OSA_TimeDelay(100);
-	// Clear Screen
-	writeCommand(kSSD1331CommandCLEAR);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0x5F);
-	writeCommand(0x3F);
-	drawChar(2);
-	OSA_TimeDelay(100);
-	// Clear Screen
-	writeCommand(kSSD1331CommandCLEAR);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0x5F);
-	writeCommand(0x3F);
-	drawChar(3);
-	OSA_TimeDelay(100);
-	// Clear Screen
-	writeCommand(kSSD1331CommandCLEAR);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0x5F);
-	writeCommand(0x3F);
-	drawChar(4);
-	OSA_TimeDelay(100);
-	// Clear Screen
-	writeCommand(kSSD1331CommandCLEAR);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0x5F);
-	writeCommand(0x3F);
-	drawChar(5);
-	OSA_TimeDelay(100);
-	// Clear Screen
-	writeCommand(kSSD1331CommandCLEAR);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0x5F);
-	writeCommand(0x3F);
-	drawChar(6);
-	OSA_TimeDelay(100);
-	// Clear Screen
-	writeCommand(kSSD1331CommandCLEAR);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0x5F);
-	writeCommand(0x3F);
-	drawChar(7);
-	OSA_TimeDelay(100);
-	// Clear Screen
-	writeCommand(kSSD1331CommandCLEAR);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0x5F);
-	writeCommand(0x3F);
-	drawChar(8);
-	OSA_TimeDelay(100);
-	// Clear Screen
-	writeCommand(kSSD1331CommandCLEAR);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0x5F);
-	writeCommand(0x3F);
-	drawChar(9);
-	OSA_TimeDelay(100);
-	// Clear Screen
-	writeCommand(kSSD1331CommandCLEAR);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0x5F);
-	writeCommand(0x3F);
+
+	// drawChar(1,0,0);
+	// OSA_TimeDelay(100);
+	// // Clear Screen
+	// writeCommand(kSSD1331CommandCLEAR);
+	// writeCommand(0x00);
+	// writeCommand(0x00);
+	// writeCommand(0x5F);
+	// writeCommand(0x3F);
+	// drawChar(2,0,0);
+	// OSA_TimeDelay(100);
+	// // Clear Screen
+	// writeCommand(kSSD1331CommandCLEAR);
+	// writeCommand(0x00);
+	// writeCommand(0x00);
+	// writeCommand(0x5F);
+	// writeCommand(0x3F);
+	// drawChar(3,0,0);
+	// OSA_TimeDelay(100);
+	// // Clear Screen
+	// writeCommand(kSSD1331CommandCLEAR);
+	// writeCommand(0x00);
+	// writeCommand(0x00);
+	// writeCommand(0x5F);
+	// writeCommand(0x3F);
+	// drawChar(4,0,0);
+	// OSA_TimeDelay(100);
+	// // Clear Screen
+	// writeCommand(kSSD1331CommandCLEAR);
+	// writeCommand(0x00);
+	// writeCommand(0x00);
+	// writeCommand(0x5F);
+	// writeCommand(0x3F);
+	// drawChar(5,0,0);
+	// OSA_TimeDelay(100);
+	// // Clear Screen
+	// writeCommand(kSSD1331CommandCLEAR);
+	// writeCommand(0x00);
+	// writeCommand(0x00);
+	// writeCommand(0x5F);
+	// writeCommand(0x3F);
+	// drawChar(6,0,0);
+	// OSA_TimeDelay(100);
+	// // Clear Screen
+	// writeCommand(kSSD1331CommandCLEAR);
+	// writeCommand(0x00);
+	// writeCommand(0x00);
+	// writeCommand(0x5F);
+	// writeCommand(0x3F);
+	// drawChar(7,0,0);
+	// OSA_TimeDelay(100);
+	// // Clear Screen
+	// writeCommand(kSSD1331CommandCLEAR);
+	// writeCommand(0x00);
+	// writeCommand(0x00);
+	// writeCommand(0x5F);
+	// writeCommand(0x3F);
+	// drawChar(8,0,0);
+	// OSA_TimeDelay(100);
+	// // Clear Screen
+	// writeCommand(kSSD1331CommandCLEAR);
+	// writeCommand(0x00);
+	// writeCommand(0x00);
+	// writeCommand(0x5F);
+	// writeCommand(0x3F);
+	// drawChar(9,0,0);
+	// OSA_TimeDelay(100);
+	// // Clear Screen
+	// writeCommand(kSSD1331CommandCLEAR);
+	// writeCommand(0x00);
+	// writeCommand(0x00);
+	// writeCommand(0x5F);
+	// writeCommand(0x3F);
 	}
 	
 
