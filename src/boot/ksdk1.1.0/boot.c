@@ -2074,18 +2074,18 @@ main(void)
 		count += 1;
 
 		
-		// for (int i=4;i>=0;i--) {
-		// drawChar(digits[i],XOFFSET+i*CHARWIDTH,YOFFSET);
-		// }
-		// OSA_TimeDelay(1000);
-		// // Clear Screen
-		// writetoOLED(kSSD1331CommandCLEAR);
-		// writetoOLED(0x00);
-		// writetoOLED(0x00);
-		// writetoOLED(0x5F);
-		// writetoOLED(0x3F);
+		for (int i=4;i>=0;i--) {
+		drawChar(digits[i],XOFFSET+i*CHARWIDTH,YOFFSET);
+		}
+		OSA_TimeDelay(1000);
+		// Clear Screen
+		writetoOLED(kSSD1331CommandCLEAR);
+		writetoOLED(0x00);
+		writetoOLED(0x00);
+		writetoOLED(0x5F);
+		writetoOLED(0x3F);
 		i2cReadStatus = readSensorRegisterMMA8451Q(0x00,1);
-		warpPrint("Status %x F_STATUS: 0x%02x,",deviceMMA8451QState.i2cBuffer[0],i2cReadStatus);
+		warpPrint("Status %x F_STATUS: 0x%02x,",i2cReadStatus,deviceMMA8451QState.i2cBuffer[0]);
 
 		i2cReadStatus = readSensorRegisterMMA8451Q(kWarpSensorOutputRegisterMMA8451QOUT_X_MSB, 2 /* numberOfBytes */);
 		xAccelMSB = deviceMMA8451QState.i2cBuffer[0];
@@ -2093,7 +2093,7 @@ main(void)
 		xAccelCombined = ((xAccelMSB & 0xFF) << 6) | (xAccelLSB >> 2);
 		/*
 		 *	Sign extend the 14-bit value based on knowledge that upper 2 bit are 0:
-		 */
+		 */	
 		xAccelCombined = (xAccelCombined ^ (1 << 13)) - (1 << 13);
 		warpPrint("Status %x X acceleration %d,", i2cReadStatus,xAccelCombined);
 		i2cReadStatus = readSensorRegisterMMA8451Q(kWarpSensorOutputRegisterMMA8451QOUT_Y_MSB, 2 /* numberOfBytes */);
