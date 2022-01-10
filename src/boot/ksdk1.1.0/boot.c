@@ -2044,7 +2044,19 @@ main(void)
 	uint16_t zAccelLSB;
 	int16_t zAccelCombined;
 	WarpStatus i2cReadStatus;
+	WarpStatus i2cConfigStatus;
+	int8_t f_status;
 
+	i2cConfigStatus = configureSensorMMA8451Q(0x00,0x01);
+	warpPrint("Config Status: %x",i2cConfigStatus);
+	// status = writeSensorRegisterMMA8451Q(0x00,0x01);
+	// warpPrint("Writing to Register 0x00, Status: %d\n",status);
+	i2cReadStatus = readSensorRegisterMMA8451Q(0x2A,1);
+	warpPrint("Register 0x2A CTRL_REG1: 0x%02x, status %x\n",deviceMMA8451QState.i2cBuffer[0],i2cReadStatus);
+	i2cReadStatus = readSensorRegisterMMA8451Q(0x09,1);
+	warpPrint("Register 0x09 F_SETUP: 0x%02x, status %x\n",deviceMMA8451QState.i2cBuffer[0],i2cReadStatus);
+	i2cReadStatus = readSensorRegisterMMA8451Q(0x00,1);
+	warpPrint("Register 0x00 F_STATUS: 0x%02x, status %x\n",deviceMMA8451QState.i2cBuffer[0],i2cReadStatus);
 	
 	while (1) {
 
@@ -2062,46 +2074,51 @@ main(void)
 		count += 1;
 
 		
-		for (int i=4;i>=0;i--) {
-		drawChar(digits[i],XOFFSET+i*CHARWIDTH,YOFFSET);
-		}
-		OSA_TimeDelay(1000);
-		// Clear Screen
-		writetoOLED(kSSD1331CommandCLEAR);
-		writetoOLED(0x00);
-		writetoOLED(0x00);
-		writetoOLED(0x5F);
-		writetoOLED(0x3F);
-		// i2cReadStatus = readSensorRegisterMMA8451Q(kWarpSensorOutputRegisterMMA8451QOUT_X_MSB, 2 /* numberOfBytes */);
-		// xAccelMSB = deviceMMA8451QState.i2cBuffer[0];
-		// xAccelLSB = deviceMMA8451QState.i2cBuffer[1];
-		// xAccelCombined = ((xAccelMSB & 0xFF) << 6) | (xAccelLSB >> 2);
-		// /*
-		//  *	Sign extend the 14-bit value based on knowledge that upper 2 bit are 0:
-		//  */
-		// xAccelCombined = (xAccelCombined ^ (1 << 13)) - (1 << 13);
-		// warpPrint(" %d,", xAccelCombined);
-		// i2cReadStatus = readSensorRegisterMMA8451Q(kWarpSensorOutputRegisterMMA8451QOUT_Y_MSB, 2 /* numberOfBytes */);
-		// yAccelMSB = deviceMMA8451QState.i2cBuffer[0];
-		// yAccelLSB = deviceMMA8451QState.i2cBuffer[1];
-		// yAccelCombined = ((yAccelMSB & 0xFF) << 6) | (yAccelLSB >> 2);
-		// /*
-		//  *	Sign extend the 14-bit value based on knowledge that upper 2 bit are 0:
-		//  */
-		// yAccelCombined = (yAccelCombined ^ (1 << 13)) - (1 << 13);
-		// warpPrint(" %d,", yAccelCombined);
-		// i2cReadStatus = readSensorRegisterMMA8451Q(kWarpSensorOutputRegisterMMA8451QOUT_Z_MSB, 2 /* numberOfBytes */);
-		// zAccelMSB = deviceMMA8451QState.i2cBuffer[0];
-		// zAccelLSB = deviceMMA8451QState.i2cBuffer[1];
-		// zAccelCombined = ((zAccelMSB & 0xFF) << 6) | (zAccelLSB >> 2);
-		// /*
-		//  *	Sign extend the 14-bit value based on knowledge that upper 2 bit are 0:
-		//  */
-		// zAccelCombined = (zAccelCombined ^ (1 << 13)) - (1 << 13);
-		// warpPrint(" %d,", zAccelCombined);
+		// for (int i=4;i>=0;i--) {
+		// drawChar(digits[i],XOFFSET+i*CHARWIDTH,YOFFSET);
+		// }
+		// OSA_TimeDelay(1000);
+		// // Clear Screen
+		// writetoOLED(kSSD1331CommandCLEAR);
+		// writetoOLED(0x00);
+		// writetoOLED(0x00);
+		// writetoOLED(0x5F);
+		// writetoOLED(0x3F);
+		i2cReadStatus = readSensorRegisterMMA8451Q(0x00,1);
+		warpPrint("Status %x F_STATUS: 0x%02x,",deviceMMA8451QState.i2cBuffer[0],i2cReadStatus);
 
+		i2cReadStatus = readSensorRegisterMMA8451Q(kWarpSensorOutputRegisterMMA8451QOUT_X_MSB, 2 /* numberOfBytes */);
+		xAccelMSB = deviceMMA8451QState.i2cBuffer[0];
+		xAccelLSB = deviceMMA8451QState.i2cBuffer[1];
+		xAccelCombined = ((xAccelMSB & 0xFF) << 6) | (xAccelLSB >> 2);
+		/*
+		 *	Sign extend the 14-bit value based on knowledge that upper 2 bit are 0:
+		 */
+		xAccelCombined = (xAccelCombined ^ (1 << 13)) - (1 << 13);
+		warpPrint("Status %x X acceleration %d,", i2cReadStatus,xAccelCombined);
+		i2cReadStatus = readSensorRegisterMMA8451Q(kWarpSensorOutputRegisterMMA8451QOUT_Y_MSB, 2 /* numberOfBytes */);
+		yAccelMSB = deviceMMA8451QState.i2cBuffer[0];
+		yAccelLSB = deviceMMA8451QState.i2cBuffer[1];
+		yAccelCombined = ((yAccelMSB & 0xFF) << 6) | (yAccelLSB >> 2);
+		/*
+		 *	Sign extend the 14-bit value based on knowledge that upper 2 bit are 0:
+		 */
+		yAccelCombined = (yAccelCombined ^ (1 << 13)) - (1 << 13);
+		warpPrint("Status %x Y acceleration %d,", i2cReadStatus,yAccelCombined);
+		i2cReadStatus = readSensorRegisterMMA8451Q(kWarpSensorOutputRegisterMMA8451QOUT_Z_MSB, 2 /* numberOfBytes */);
+		zAccelMSB = deviceMMA8451QState.i2cBuffer[0];
+		zAccelLSB = deviceMMA8451QState.i2cBuffer[1];
+		zAccelCombined = ((zAccelMSB & 0xFF) << 6) | (zAccelLSB >> 2);
+		/*
+		 *	Sign extend the 14-bit value based on knowledge that upper 2 bit are 0:
+		 */
+		zAccelCombined = (zAccelCombined ^ (1 << 13)) - (1 << 13);
+		warpPrint("Status %x Z acceleration %d\n", i2cReadStatus,zAccelCombined);
+
+		OSA_TimeDelay(10);
 	
 	}
+	
 	
 	while (1)
 	{
