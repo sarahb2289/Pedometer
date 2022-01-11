@@ -2105,7 +2105,7 @@ main(void)
 	devSSD1331init();
 
 	uint32_t loopCount = 0;
-	uint32_t stepCount =0;
+	uint32_t stepCount = 0;
 	uint16_t xAccelMSB;
 	uint16_t xAccelLSB;
 	int16_t xAccelCombined;
@@ -2200,7 +2200,7 @@ main(void)
 
 		// Read x acceleration
 		i2cReadStatus = readSensorRegisterMMA8451Q(0x00,1);
-		warpPrint("Status %x F_STATUS: 0x%02x,",i2cReadStatus,deviceMMA8451QState.i2cBuffer[0]);
+		// warpPrint("Status %x F_STATUS: 0x%02x,",i2cReadStatus,deviceMMA8451QState.i2cBuffer[0]);
 
 		i2cReadStatus = readSensorRegisterMMA8451Q(kWarpSensorOutputRegisterMMA8451QOUT_X_MSB, 2 /* numberOfBytes */);
 		xAccelMSB = deviceMMA8451QState.i2cBuffer[0];
@@ -2210,7 +2210,7 @@ main(void)
 		 *	Sign extend the 14-bit value based on knowledge that upper 2 bit are 0:
 		 */	
 		xAccelCombined = (xAccelCombined ^ (1 << 13)) - (1 << 13);
-		warpPrint("Status %x X acceleration %d,", i2cReadStatus,xAccelCombined);
+		// warpPrint("Status %x X acceleration %d,", i2cReadStatus,xAccelCombined);
 		
 		Enqueue(xQ,xAccelCombined);
 
@@ -2223,7 +2223,7 @@ main(void)
 		 *	Sign extend the 14-bit value based on knowledge that upper 2 bit are 0:
 		 */
 		yAccelCombined = (yAccelCombined ^ (1 << 13)) - (1 << 13);
-		warpPrint("Status %x Y acceleration %d,", i2cReadStatus,yAccelCombined);
+		// warpPrint("Status %x Y acceleration %d,", i2cReadStatus,yAccelCombined);
 
 		Enqueue(yQ,yAccelCombined);
 
@@ -2236,16 +2236,16 @@ main(void)
 		 *	Sign extend the 14-bit value based on knowledge that upper 2 bit are 0:
 		 */
 		zAccelCombined = (zAccelCombined ^ (1 << 13)) - (1 << 13);
-		warpPrint("Status %x Z acceleration %d\n", i2cReadStatus,zAccelCombined);
+		// warpPrint("Status %x Z acceleration %d\n", i2cReadStatus,zAccelCombined);
 
 		Enqueue(zQ,zAccelCombined);
 
 		/* Signal analysis on acceleration data */
-		warpPrint("X Buffer Reads: %d,%d,%d,%d\n",xQ->elements[0],xQ->elements[1],xQ->elements[2],xQ->elements[3]);
+		// warpPrint("X Buffer Reads: %d,%d,%d,%d\n",xQ->elements[0],xQ->elements[1],xQ->elements[2],xQ->elements[3]);
 
-		warpPrint("Y Buffer Reads: %d,%d,%d,%d\n",yQ->elements[0],yQ->elements[1],yQ->elements[2],yQ->elements[3]);
+		// warpPrint("Y Buffer Reads: %d,%d,%d,%d\n",yQ->elements[0],yQ->elements[1],yQ->elements[2],yQ->elements[3]);
 
-		warpPrint("Z Buffer Reads: %d,%d,%d,%d\n",zQ->elements[0],zQ->elements[1],zQ->elements[2],zQ->elements[3]);
+		// warpPrint("Z Buffer Reads: %d,%d,%d,%d\n",zQ->elements[0],zQ->elements[1],zQ->elements[2],zQ->elements[3]);
 
 		xAveOld = xAveNew;
 		xAveNew = (xQ->elements[0]+xQ->elements[1]+xQ->elements[2]+xQ->elements[3])/4;
@@ -2255,7 +2255,7 @@ main(void)
 		if (xAveNew<xMin) {
 			xMin = xAveNew;
 		}
-		if (loopCount%5==0) {
+		if (loopCount%50==0) {
 			xThresh = (xMax+xMin)/2;
 			xMax=xThresh;
 			xMin=xThresh;
@@ -2269,7 +2269,7 @@ main(void)
 		if (yAveNew<yMin) {
 			yMin = yAveNew;
 		}
-		if (loopCount%5==0) {
+		if (loopCount%50==0) {
 			yThresh = (yMax+yMin)/2;
 			yMax=yThresh;
 			yMin=yThresh;
@@ -2283,31 +2283,73 @@ main(void)
 		if (zAveNew<zMin) {
 			zMin = zAveNew;
 		}
-		if (loopCount%5==0) {
+		if (loopCount%50==0) {
 			zThresh = (zMax+zMin)/2;
 			zMax = zThresh;
 			zMin = zThresh;
 		}
 
-		if (xMax-xMin>yMax-yMin) {
-			if (xMax-xMin>zMax-zMin) {
+		if ((xMax-xMin)>(yMax-yMin)) {
+			if ((xMax-xMin)>(zMax-zMin)) {
 				// X Axis has biggest change
 				largestAxis = 'x';
+				warpPrint("Largest Axis %c\n",largestAxis);
+				AveNew = xAveNew;
+				AveOld = xAveOld;
+				Thresh = xThresh;
 			} else {
 				// Z Axis has biggest change
 				largestAxis = 'z';
+				warpPrint("Largest Axis %c\n",largestAxis);
+				AveNew = zAveNew;
+				AveOld = zAveOld;
+				Thresh = zThresh;
 			} 
 		} else {
-			if (yMax-yMin>zMax-zMin) {
+			if ((yMax-yMin)>(zMax-zMin)) {
 				// Y Axis has biggest change
 				largestAxis = 'y';
+				warpPrint("Largest Axis %c\n",largestAxis);
+				AveNew = yAveNew;
+				AveOld = yAveOld;
+				Thresh = yThresh;
 			} else {
 				// Z Axis has biggest change
 				largestAxis = 'z';
+				warpPrint("Largest Axis %c\n",largestAxis);
+				AveNew = zAveNew;
+				AveOld = zAveOld;
+				Thresh = zThresh;
 			}
 		}
 		
-		warpPrint("Largest change was in %c axis\n",largestAxis);
+		if ((AveNew<Thresh)&&(AveOld>Thresh)) {
+					warpPrint("Step in %c axis\n",largestAxis);
+					stepCount++;
+				}
+		
+		// switch (largestAxis) {
+		// 	case 'x': {
+		// 		// warpPrint("Checking for step in x\n");
+		// 		if ((xAveNew>xThresh)&&(xAveOld<xThresh)) {
+		// 			warpPrint("Step in x axis\n");
+		// 			stepCount++;
+		// 		}
+		// 	}
+		// 	case 'y': {
+		// 		// warpPrint("Checking for step in y\n");
+		// 		if ((yAveNew>yThresh)&&(yAveOld<yThresh)) {
+		// 			warpPrint("Step in y axis\n");
+		// 			stepCount++;
+		// 		}
+		// 	}
+		// 	case 'z': {
+		// 		// warpPrint("Checking for step in z\n");
+		// 		if ((zAveNew>zThresh)&&(zAveOld<zThresh)) {
+		// 			warpPrint("Step in z axis\n");
+		// 		}
+		// 	}
+		// }
 		
 
 
@@ -2331,6 +2373,9 @@ main(void)
 			digiti += 1;
 		} 
 		loopCount += 1;
+		// warpPrint("Loop Count %d\n",loopCount);
+		warpPrint("Step Count %d\n",stepCount);
+		if (loopCount%50==25) {
 		// Clear Screen
 		writetoOLED(kSSD1331CommandCLEAR);
 		writetoOLED(0x00);
@@ -2341,7 +2386,7 @@ main(void)
 		drawChar(digits[i],XOFFSET+i*CHARWIDTH,YOFFSET);
 		}
 		// OSA_TimeDelay(10);
-		
+		}
 	
 	}
 	
