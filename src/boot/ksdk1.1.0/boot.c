@@ -2122,6 +2122,10 @@ main(void)
 	char largestAxis;
 	WarpStatus i2cReadStatus;
 	WarpStatus i2cConfigStatus;
+	uint32_t current_time;
+	uint32_t previous_time;
+	uint32_t previous_step = 0;
+	bool stepCountChanged;
 
 
 	/* Configure accelerometer */
@@ -2210,7 +2214,7 @@ main(void)
 		 *	Sign extend the 14-bit value based on knowledge that upper 2 bit are 0:
 		 */	
 		xAccelCombined = (xAccelCombined ^ (1 << 13)) - (1 << 13);
-		// warpPrint("Status %x X acceleration %d,", i2cReadStatus,xAccelCombined);
+		warpPrint("Status %x X acceleration %d,", i2cReadStatus,xAccelCombined);
 		
 		Enqueue(xQ,xAccelCombined);
 
@@ -2223,7 +2227,7 @@ main(void)
 		 *	Sign extend the 14-bit value based on knowledge that upper 2 bit are 0:
 		 */
 		yAccelCombined = (yAccelCombined ^ (1 << 13)) - (1 << 13);
-		// warpPrint("Status %x Y acceleration %d,", i2cReadStatus,yAccelCombined);
+		warpPrint("Status %x Y acceleration %d,", i2cReadStatus,yAccelCombined);
 
 		Enqueue(yQ,yAccelCombined);
 
@@ -2236,7 +2240,7 @@ main(void)
 		 *	Sign extend the 14-bit value based on knowledge that upper 2 bit are 0:
 		 */
 		zAccelCombined = (zAccelCombined ^ (1 << 13)) - (1 << 13);
-		// warpPrint("Status %x Z acceleration %d\n", i2cReadStatus,zAccelCombined);
+		warpPrint("Status %x Z acceleration %d\n", i2cReadStatus,zAccelCombined);
 
 		Enqueue(zQ,zAccelCombined);
 
@@ -2269,7 +2273,8 @@ main(void)
 		if (yAveNew<yMin) {
 			yMin = yAveNew;
 		}
-		if (loopCount%50==0) {
+		current_time = OSA_TimeGetMsec();
+		if ((current_time-100)>previous_time) {
 			yThresh = (yMax+yMin)/2;
 			yMax=yThresh;
 			yMin=yThresh;
@@ -2322,42 +2327,19 @@ main(void)
 				Thresh = zThresh;
 			}
 		}
-		
-		if ((AveNew<Thresh)&&(AveOld>Thresh)) {
+		current_time = OSA_TimeGetMsec();
+		if ((AveNew<Thresh)&&(AveOld>Thresh)&&(AveOld-AveNew>100)&&(current_time-100>previous_step)) {
 					warpPrint("Step in %c axis\n",largestAxis);
 					stepCount++;
+					stepCountChanged = 1;
+					previous_step = current_time;
 				}
 		
-		// switch (largestAxis) {
-		// 	case 'x': {
-		// 		// warpPrint("Checking for step in x\n");
-		// 		if ((xAveNew>xThresh)&&(xAveOld<xThresh)) {
-		// 			warpPrint("Step in x axis\n");
-		// 			stepCount++;
-		// 		}
-		// 	}
-		// 	case 'y': {
-		// 		// warpPrint("Checking for step in y\n");
-		// 		if ((yAveNew>yThresh)&&(yAveOld<yThresh)) {
-		// 			warpPrint("Step in y axis\n");
-		// 			stepCount++;
-		// 		}
-		// 	}
-		// 	case 'z': {
-		// 		// warpPrint("Checking for step in z\n");
-		// 		if ((zAveNew>zThresh)&&(zAveOld<zThresh)) {
-		// 			warpPrint("Step in z axis\n");
-		// 		}
-		// 	}
-		// }
-		
-
-
 
 		
 		/* Update Display */
 		
-		uint32_t number = xAccelCombined;
+		uint32_t number = stepCount;
 
 				uint8_t digits[] = {0,0,0,0,0};
 		if (stepCount>99999){
@@ -2366,26 +2348,28 @@ main(void)
 		if (loopCount>99999){
 			loopCount = 0;
 		}
-		uint8_t digiti = 0;
-		while (number>0) {
-			digits[4-digiti] = number%10;
-			number /= 10;
-			digiti += 1;
-		} 
+		
 		loopCount += 1;
 		// warpPrint("Loop Count %d\n",loopCount);
 		warpPrint("Step Count %d\n",stepCount);
-		if (loopCount%50==25) {
-		// Clear Screen
-		writetoOLED(kSSD1331CommandCLEAR);
-		writetoOLED(0x00);
-		writetoOLED(0x00);
-		writetoOLED(0x5F);
-		writetoOLED(0x3F);
-		for (int i=4;i>=0;i--) {
-		drawChar(digits[i],XOFFSET+i*CHARWIDTH,YOFFSET);
-		}
-		// OSA_TimeDelay(10);
+		if (stepCountChanged) {
+			uint8_t digiti = 0;
+			while (number>0) {
+				digits[4-digiti] = number%10;
+				number /= 10;
+				digiti += 1;
+			} 
+			// Clear Screen
+			writetoOLED(kSSD1331CommandCLEAR);
+			writetoOLED(0x00);
+			writetoOLED(0x00);
+			writetoOLED(0x5F);
+			writetoOLED(0x3F);
+			for (int i=4;i>=0;i--) {
+			drawChar(digits[i],XOFFSET+i*CHARWIDTH,YOFFSET);
+			}
+			// OSA_TimeDelay(10);
+			stepCountChanged = 0;
 		}
 	
 	}
