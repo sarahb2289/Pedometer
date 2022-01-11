@@ -70,6 +70,9 @@
 #define XOFFSET 0
 #define YOFFSET 10
 #define CHARWIDTH 18
+#define QUEUE_ELEMENTS 4
+#define QUEUE_SIZE (QUEUE_ELEMENTS + 1)
+
 #define							kWarpConstantStringI2cFailure		"\rI2C failed, reg 0x%02x, code %d\n"
 #define							kWarpConstantStringErrorInvalidVoltage	"\rInvalid supply voltage [%d] mV!"
 #define							kWarpConstantStringErrorSanity		"\rSanity check failed!"
@@ -241,11 +244,60 @@ WarpStatus						writeBytesToSpi(uint8_t *  payloadBytes, int payloadLength);
 
 void							warpLowPowerSecondsSleep(uint32_t sleepSeconds, bool forceAllPinsIntoLowPowerState);
 
-//THIS IS MY FUNCTION!
+//THESE ARE MY FUNCTIONS!
 // void I2C0_IRQHandler(void) {
 // 		// warpPrint("Hello Sarah!!!");
 // 		return;
 // 	}
+
+/* Defining FIFO circular array */
+
+typedef struct Queue {
+	int8_t capacity;
+	int8_t size;
+	int8_t head;
+	int8_t tail;
+	int16_t *elements;
+} Queue;
+
+
+
+int Dequeue(Queue *Q) {
+	/* Check if queue is empty, return -1 if so */
+	if(Q->size==0) {
+		return -1;
+	}
+	/* 'Remove' element by incrementing head pointer by one */
+	else {
+		Q->size--;
+		Q->head++;
+		// Fill in circular fashion
+		if(Q->head==Q->capacity) {
+			Q->head=0;
+		}
+	}
+	return 0;
+}
+int16_t ReadHead(Queue *Q) {
+	/* Check for empty list */
+	if(Q->size==0) {
+		return -1;
+	}
+	return Q->elements[Q->head];
+}
+void Enqueue(Queue *Q, int16_t element) {
+	if(Q->size < Q->capacity) {
+		Q->size++;
+	} 
+	Q->tail++;
+	if(Q->tail==Q->capacity) {
+		Q->tail=0;
+	}
+	Q->elements[Q->tail]=element;
+	
+	return;
+}
+
 
 /*
  *	Derived from KSDK power_manager_demo.c BEGIN>>>
@@ -2052,19 +2104,24 @@ main(void)
 
 	devSSD1331init();
 
-	uint32_t count = 0;
+	uint32_t loopCount = 0;
+	uint32_t stepCount =0;
 	uint16_t xAccelMSB;
 	uint16_t xAccelLSB;
 	int16_t xAccelCombined;
+	int16_t xAveOld, xAveNew = 0, xMax, xMin, xThresh;
 	uint16_t yAccelMSB;
 	uint16_t yAccelLSB;
 	int16_t yAccelCombined;
+	int16_t yAveOld, yAveNew = 0, yMax, yMin, yThresh;
 	uint16_t zAccelMSB;
 	uint16_t zAccelLSB;
 	int16_t zAccelCombined;
+	int16_t zAveOld, zAveNew = 0, zMax, zMin, zThresh;
+	int16_t AveOld, AveNew, Thresh;
+	char largestAxis;
 	WarpStatus i2cReadStatus;
 	WarpStatus i2cConfigStatus;
-	int8_t f_status;
 
 
 	/* Configure accelerometer */
@@ -2084,6 +2141,59 @@ main(void)
 	i2cReadStatus = readSensorRegisterMMA8451Q(0x0C,1);
 	warpPrint("Register 0x0C INTERRUPT_STATUS: 0x%02x, status %x\n",deviceMMA8451QState.i2cBuffer[0],i2cReadStatus);
 
+	warpPrint("Initialising Queue...");
+
+	// Initialise X queue
+	Queue *xQ;
+	warpPrint("\nBefore first alloca\n");
+	xQ = (Queue *)alloca(sizeof(Queue));
+	warpPrint("After first alloca\n");
+	if (xQ==NULL){
+		warpPrint("Insufficient Memory");
+	}
+	/*Initialise properties*/
+	xQ->elements = (int16_t *)alloca(sizeof(int16_t)*QUEUE_SIZE);
+	warpPrint("After second alloca\n");
+	xQ->size = 0;
+	xQ->capacity = QUEUE_SIZE;
+	xQ->head = 0;
+	xQ->tail = -1;
+	warpPrint("done\n");
+
+	// Initialise Y queue
+	Queue *yQ;
+	warpPrint("\nBefore first alloca\n");
+	yQ = (Queue *)alloca(sizeof(Queue));
+	warpPrint("After first alloca\n");
+	if (yQ==NULL){
+		warpPrint("Insufficient Memory");
+	}
+	/*Initialise properties*/
+	yQ->elements = (int16_t *)alloca(sizeof(int16_t)*QUEUE_SIZE);
+	warpPrint("After second alloca\n");
+	yQ->size = 0;
+	yQ->capacity = QUEUE_SIZE;
+	yQ->head = 0;
+	yQ->tail = -1;
+	warpPrint("done\n");
+
+	// Initialise z queue
+	Queue *zQ;
+	warpPrint("\nBefore first alloca\n");
+	zQ = (Queue *)alloca(sizeof(Queue));
+	warpPrint("After first alloca\n");
+	if (zQ==NULL){
+		warpPrint("Insufficient Memory");
+	}
+	/*Initialise properties*/
+	zQ->elements = (int16_t *)alloca(sizeof(int16_t)*QUEUE_SIZE);
+	warpPrint("After second alloca\n");
+	zQ->size = 0;
+	zQ->capacity = QUEUE_SIZE;
+	zQ->head = 0;
+	zQ->tail = -1;
+	warpPrint("done\n");
+
 	while (1) {
 
 		// Acceleration in 2g mode, 4096 counts/g
@@ -2101,6 +2211,8 @@ main(void)
 		 */	
 		xAccelCombined = (xAccelCombined ^ (1 << 13)) - (1 << 13);
 		warpPrint("Status %x X acceleration %d,", i2cReadStatus,xAccelCombined);
+		
+		Enqueue(xQ,xAccelCombined);
 
 		// Read y acceleration
 		i2cReadStatus = readSensorRegisterMMA8451Q(kWarpSensorOutputRegisterMMA8451QOUT_Y_MSB, 2 /* numberOfBytes */);
@@ -2113,6 +2225,8 @@ main(void)
 		yAccelCombined = (yAccelCombined ^ (1 << 13)) - (1 << 13);
 		warpPrint("Status %x Y acceleration %d,", i2cReadStatus,yAccelCombined);
 
+		Enqueue(yQ,yAccelCombined);
+
 		// Read z acceleration
 		i2cReadStatus = readSensorRegisterMMA8451Q(kWarpSensorOutputRegisterMMA8451QOUT_Z_MSB, 2 /* numberOfBytes */);
 		zAccelMSB = deviceMMA8451QState.i2cBuffer[0];
@@ -2124,32 +2238,110 @@ main(void)
 		zAccelCombined = (zAccelCombined ^ (1 << 13)) - (1 << 13);
 		warpPrint("Status %x Z acceleration %d\n", i2cReadStatus,zAccelCombined);
 
-		// OSA_TimeDelay(10);
+		Enqueue(zQ,zAccelCombined);
 
+		/* Signal analysis on acceleration data */
+		warpPrint("X Buffer Reads: %d,%d,%d,%d\n",xQ->elements[0],xQ->elements[1],xQ->elements[2],xQ->elements[3]);
+
+		warpPrint("Y Buffer Reads: %d,%d,%d,%d\n",yQ->elements[0],yQ->elements[1],yQ->elements[2],yQ->elements[3]);
+
+		warpPrint("Z Buffer Reads: %d,%d,%d,%d\n",zQ->elements[0],zQ->elements[1],zQ->elements[2],zQ->elements[3]);
+
+		xAveOld = xAveNew;
+		xAveNew = (xQ->elements[0]+xQ->elements[1]+xQ->elements[2]+xQ->elements[3])/4;
+		if (xAveNew>xMax) {
+			xMax = xAveNew;
+		}
+		if (xAveNew<xMin) {
+			xMin = xAveNew;
+		}
+		if (loopCount%5==0) {
+			xThresh = (xMax+xMin)/2;
+			xMax=xThresh;
+			xMin=xThresh;
+		}
+
+		yAveOld = yAveNew;
+		yAveNew = (yQ->elements[0]+yQ->elements[1]+yQ->elements[2]+yQ->elements[3])/4;
+		if (yAveNew>yMax) {
+			yMax = yAveNew;
+		}
+		if (yAveNew<yMin) {
+			yMin = yAveNew;
+		}
+		if (loopCount%5==0) {
+			yThresh = (yMax+yMin)/2;
+			yMax=yThresh;
+			yMin=yThresh;
+		}
+
+		zAveOld = zAveNew;
+		zAveNew = (zQ->elements[0]+zQ->elements[1]+zQ->elements[2]+zQ->elements[3])/4;
+		if (zAveNew>zMax) {
+			zMax = zAveNew;
+		}
+		if (zAveNew<zMin) {
+			zMin = zAveNew;
+		}
+		if (loopCount%5==0) {
+			zThresh = (zMax+zMin)/2;
+			zMax = zThresh;
+			zMin = zThresh;
+		}
+
+		if (xMax-xMin>yMax-yMin) {
+			if (xMax-xMin>zMax-zMin) {
+				// X Axis has biggest change
+				largestAxis = 'x';
+			} else {
+				// Z Axis has biggest change
+				largestAxis = 'z';
+			} 
+		} else {
+			if (yMax-yMin>zMax-zMin) {
+				// Y Axis has biggest change
+				largestAxis = 'y';
+			} else {
+				// Z Axis has biggest change
+				largestAxis = 'z';
+			}
+		}
+		
+		warpPrint("Largest change was in %c axis\n",largestAxis);
+		
+
+
+
+		
 		/* Update Display */
+		
+		uint32_t number = xAccelCombined;
 
 				uint8_t digits[] = {0,0,0,0,0};
-		if (count>99999){
-			count = 0;
+		if (stepCount>99999){
+			stepCount = 0; 
+		} 
+		if (loopCount>99999){
+			loopCount = 0;
 		}
 		uint8_t digiti = 0;
-		uint32_t number = xAccelCombined;
 		while (number>0) {
 			digits[4-digiti] = number%10;
 			number /= 10;
 			digiti += 1;
 		} 
-		count += 1;	
-		for (int i=4;i>=0;i--) {
-		drawChar(digits[i],XOFFSET+i*CHARWIDTH,YOFFSET);
-		}
-		OSA_TimeDelay(10);
+		loopCount += 1;
 		// Clear Screen
 		writetoOLED(kSSD1331CommandCLEAR);
 		writetoOLED(0x00);
 		writetoOLED(0x00);
 		writetoOLED(0x5F);
 		writetoOLED(0x3F);
+		for (int i=4;i>=0;i--) {
+		drawChar(digits[i],XOFFSET+i*CHARWIDTH,YOFFSET);
+		}
+		// OSA_TimeDelay(10);
+		
 	
 	}
 	
