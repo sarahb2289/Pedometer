@@ -2328,10 +2328,10 @@ main(void)
 			}
 		}
 		current_time = OSA_TimeGetMsec();
-		if ((AveNew<Thresh)&&(AveOld>Thresh)&&(AveOld-AveNew>100)&&(current_time-100>previous_step)) {
+		if ((AveNew<Thresh)&&(AveOld>Thresh)&&(AveOld-AveNew>10)&&(current_time-30>previous_step)) {
 					warpPrint("Step in %c axis\n",largestAxis);
 					stepCount++;
-					stepCountChanged = 1;
+					stepCountChanged = true;
 					previous_step = current_time;
 				}
 		
@@ -2352,7 +2352,7 @@ main(void)
 		loopCount += 1;
 		// warpPrint("Loop Count %d\n",loopCount);
 		warpPrint("Step Count %d\n",stepCount);
-		if (stepCountChanged) {
+		if (loopCount%50==0) {
 			uint8_t digiti = 0;
 			while (number>0) {
 				digits[4-digiti] = number%10;
@@ -2369,7 +2369,7 @@ main(void)
 			drawChar(digits[i],XOFFSET+i*CHARWIDTH,YOFFSET);
 			}
 			// OSA_TimeDelay(10);
-			stepCountChanged = 0;
+			stepCountChanged = false;
 		}
 	
 	}
