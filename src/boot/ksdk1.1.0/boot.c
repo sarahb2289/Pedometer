@@ -2101,9 +2101,9 @@ main(void)
 	// warpPrint(success);
 
 	// warpPrint("I did it\n");
-	while (1) {
+	// while (1) {
 	devSSD1331init();
-	}
+	// }
 	uint32_t loopCount = 0;
 	uint32_t stepCount = 0;
 	uint16_t xAccelMSB;
