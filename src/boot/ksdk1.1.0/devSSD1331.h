@@ -45,6 +45,7 @@ typedef enum
 	kSSD1331CommandVCOMH		= 0xBE,
 } SSD1331Commands;
 
+void clearScreen(void);
 int writetoOLED(uint8_t commandByte);
 void writeColour(void);
 void drawVertSegment(uint8_t topLeftX, uint8_t topLeftY);

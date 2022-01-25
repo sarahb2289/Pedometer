@@ -2328,7 +2328,7 @@ main(void)
 			}
 		}
 		current_time = OSA_TimeGetMsec();
-		if ((AveNew<Thresh)&&(AveOld>Thresh)&&(AveOld-AveNew>10)&&(current_time-30>previous_step)) {
+		if ((AveNew<Thresh)&&(AveOld>Thresh)&&(AveOld-AveNew>100)&&(current_time-300>previous_step)) {
 					warpPrint("Step in %c axis\n",largestAxis);
 					stepCount++;
 					stepCountChanged = true;
@@ -2352,19 +2352,14 @@ main(void)
 		loopCount += 1;
 		// warpPrint("Loop Count %d\n",loopCount);
 		warpPrint("Step Count %d\n",stepCount);
-		if (loopCount%50==0) {
+		if (stepCountChanged) {
 			uint8_t digiti = 0;
 			while (number>0) {
 				digits[4-digiti] = number%10;
 				number /= 10;
 				digiti += 1;
 			} 
-			// Clear Screen
-			writetoOLED(kSSD1331CommandCLEAR);
-			writetoOLED(0x00);
-			writetoOLED(0x00);
-			writetoOLED(0x5F);
-			writetoOLED(0x3F);
+			clearScreen();
 			for (int i=4;i>=0;i--) {
 			drawChar(digits[i],XOFFSET+i*CHARWIDTH,YOFFSET);
 			}

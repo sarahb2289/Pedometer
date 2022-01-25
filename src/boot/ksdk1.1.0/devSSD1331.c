@@ -50,7 +50,7 @@ writetoOLED(uint8_t commandByte)
 	 *	Make sure there is a high-to-low transition by first driving high, delay, then drive low.
 	 */
 	GPIO_DRV_SetPinOutput(kSSD1331PinCSn);
-	OSA_TimeDelay(10);
+	// OSA_TimeDelay(1);
 	GPIO_DRV_ClearPinOutput(kSSD1331PinCSn);
 
 	/*
@@ -72,6 +72,17 @@ writetoOLED(uint8_t commandByte)
 	GPIO_DRV_SetPinOutput(kSSD1331PinCSn);
 
 	return status;
+}
+
+void
+clearScreen(void)
+{
+	// Clear Screen
+	writetoOLED(kSSD1331CommandCLEAR);
+	writetoOLED(0x00);
+	writetoOLED(0x00);
+	writetoOLED(0x5F);
+	writetoOLED(0x3F);
 }
 
 void
