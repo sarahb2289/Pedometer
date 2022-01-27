@@ -2089,21 +2089,9 @@ main(void)
 		}
 	#endif
 	
-	// warpDisableSPIpins();
-	/* MY CODE STARTS*/
-	// warpPrint("I'm trying\n");
-
-
-	// INT_SYS_EnableIRQ(I2C0_IRQn);
-	// warpPrint("Enabled it\n");
-
-	// uint8_t success = INT_SYS_InstallHandler(I2C0_IRQn, I2C0_IRQHandler);
-	// warpPrint(success);
-
-	// warpPrint("I did it\n");
-	// while (1) {
-	devSSD1331init();
-	// }
+	
+	/*PEDOMETER CODE STARTS*/
+	// Initialise variables
 	uint32_t loopCount = 0;
 	uint32_t stepCount = 0;
 	uint16_t xAccelMSB;
@@ -2132,15 +2120,14 @@ main(void)
 	uint32_t previous_step = 0;
 	uint32_t previous_refresh=0;
 	bool stepCountChanged;
+	
+	//Initialise OLED display
+	devSSD1331init();
 
 
 	/* Configure accelerometer */
 	i2cConfigStatus = configureSensorMMA8451Q(0x00,0x01);
 	warpPrint("Config Status: %x",i2cConfigStatus);
-	// status = writeSensorRegisterMMA8451Q(0x1D,0x0E);
-	// warpPrint("Writing to Register 0x1D, Status: %d\n",status);
-	// status = writeSensorRegisterMMA8451Q(0x2D,0x20);
-	// warpPrint("Writing to Register 0x2D, Status: %d\n",status);
 	/* Check setup registers have been set correctly */
 	i2cReadStatus = readSensorRegisterMMA8451Q(0x2A,1);
 	warpPrint("Register 0x2A CTRL_REG1: 0x%02x, status %x\n",deviceMMA8451QState.i2cBuffer[0],i2cReadStatus);
@@ -2205,9 +2192,10 @@ main(void)
 	warpPrint("done\n");
 
 	while (1) {
+		// Get time in milliseconds at beginning of loop, for assessing time taken for single loop
 		loop_start=OSA_TimeGetMsec();
-		// warpPrint("Loop Start: %d\n",loop_start);
-		// Acceleration in 2g mode, 4096 counts/g
+
+		/* Acceleration in 2g mode, 4096 counts/g */
 
 		// Read x acceleration
 		i2cReadStatus = readSensorRegisterMMA8451Q(0x00,1);
@@ -2252,28 +2240,25 @@ main(void)
 		Enqueue(zQ,zAccelCombined);
 
 		/* Signal analysis on acceleration data */
-		// warpPrint("X Buffer Reads: %d,%d,%d,%d\n",xQ->elements[0],xQ->elements[1],xQ->elements[2],xQ->elements[3]);
-
-		// warpPrint("Y Buffer Reads: %d,%d,%d,%d\n",yQ->elements[0],yQ->elements[1],yQ->elements[2],yQ->elements[3]);
-
-		// warpPrint("Z Buffer Reads: %d,%d,%d,%d\n",zQ->elements[0],zQ->elements[1],zQ->elements[2],zQ->elements[3]);
-
+		// Circular 4 item buffer for each axis
+	
 		xAveOld = xAveNew;
-		xAveNew = (xQ->elements[0]+xQ->elements[1]+xQ->elements[2]+xQ->elements[3])/4;
+		xAveNew = (xQ->elements[0]+xQ->elements[1]+xQ->elements[2]+xQ->elements[3])/4; //Update rolling average 
+		/* Update max and min values*/
 		if (xAveNew>xMax) {
 			xMax = xAveNew;
 		}
 		if (xAveNew<xMin) {
 			xMin = xAveNew;
 		}
+
 		current_time = OSA_TimeGetMsec();
-		// warpPrint("Current Time: %d\n",current_time);
-		if ((current_time-500)>previous_time) {
+		if ((current_time-500)>previous_time) { // Update threshold value every 500ms
 			xThresh = (xMax+xMin)/2;
 			xMax=xThresh;
 			xMin=xThresh;
 		}
-
+		/* Repeat same steps for y and z axes */
 		yAveOld = yAveNew;
 		yAveNew = (yQ->elements[0]+yQ->elements[1]+yQ->elements[2]+yQ->elements[3])/4;
 		if (yAveNew>yMax) {
@@ -2306,6 +2291,7 @@ main(void)
 			zMin = zThresh;
 		}
 
+		/* Find axis with biggest change */
 		if ((xMax-xMin)>(yMax-yMin)) {
 			if ((xMax-xMin)>(zMax-zMin)) {
 				// X Axis has biggest change
@@ -2340,8 +2326,9 @@ main(void)
 			}
 		}
 		current_time = OSA_TimeGetMsec();
-		warpPrint("Current Time: %d\n",current_time);
-		warpPrint("Previous Step: %d\n",previous_step);
+		// warpPrint("Current Time: %d\n",current_time);
+		// warpPrint("Previous Step: %d\n",previous_step);
+		/* Check for new step conditions */
 		if ((AveNew<Thresh)&&(AveOld>Thresh)&&(AveOld-AveNew>100)&&(current_time-400>previous_step)) {
 					// warpPrint("Step in %c axis\n",largestAxis);
 					stepCount++;
@@ -2367,30 +2354,36 @@ main(void)
 		// warpPrint("Loop Count %d\n",loopCount);
 		current_time=OSA_TimeGetMsec();
 		warpPrint("Step Count %d\n",stepCount);
+		/* Update display only if step count is updated (or it's the first loop) */
 		if (stepCountChanged || loopCount==1) {
 			uint8_t digiti = 0;
 			while (number>0) {
+				// Split step count into digits
 				digits[4-digiti] = number%10;
 				number /= 10;
 				digiti += 1;
 			} 
+			// Clear previous number from screen
 			clearScreen();
 			for (int i=4;i>=0;i--) {
+				// Loop through and draw each digit in turn, starting from least significant digit because this is most likely to have changed
 			drawChar(digits[i],XOFFSET+i*CHARWIDTH,YOFFSET);
 			}
 			// OSA_TimeDelay(10);
-			stepCountChanged = false;
-			previous_refresh=current_time;
+			stepCountChanged = false; // Reset boolean for tracking whether step count has changed
+			// previous_refresh=current_time;
 		}
 		current_time=OSA_TimeGetMsec();
 		// warpPrint("Current Time %d\n",current_time);
-		loop_time=current_time-loop_start;
+		loop_time=current_time-loop_start; // Find how long the current loop took
 		warpPrint("Loop Time: %d\n",loop_time);
-		loopTimeAverage=(loopTimeAverage*(loopCount-1)+loop_time)/loopCount;
+		loopTimeAverage=(loopTimeAverage*(loopCount-1)+loop_time)/loopCount; // Update average loop time to account for most recent measurement
+		// For first loop, set max and min equal to value
 		if (loopCount==1) {
 			loopTimeMin=loop_time;
 			loopTimeMax=loop_time;
 		}
+		// Update max and min loop times
 		if (loop_time>loopTimeMax) {
 			loopTimeMax=loop_time;
 		} else {
@@ -2398,14 +2391,15 @@ main(void)
 			loopTimeMin=loop_time;
 		}
 		}	
-		if (loopCount%50==0) {
+		// Periodically print loop time data
+		if (loopCount%50==0) { 
 			warpPrint("Loop Time Average: %d\n",loopTimeAverage);
 			warpPrint("Loop Time Min: %d\n",loopTimeMin);
 			warpPrint("Loop Time Max: %d\n",loopTimeMax);
 		}
 	}
 	
-	/*MY CODE ENDS*/
+	/*PEDOMETER CODE ENDS*/
 	
 	while (1)
 	{
