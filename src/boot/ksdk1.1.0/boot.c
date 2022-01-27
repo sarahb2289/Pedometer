@@ -2266,8 +2266,8 @@ main(void)
 			xMin = xAveNew;
 		}
 		current_time = OSA_TimeGetMsec();
-		warpPrint("Current Time: %d\n",current_time);
-		if ((current_time-100)>previous_time) {
+		// warpPrint("Current Time: %d\n",current_time);
+		if ((current_time-500)>previous_time) {
 			xThresh = (xMax+xMin)/2;
 			xMax=xThresh;
 			xMin=xThresh;
@@ -2282,8 +2282,8 @@ main(void)
 			yMin = yAveNew;
 		}
 		current_time = OSA_TimeGetMsec();
-		warpPrint("Current Time: %d\n",current_time);
-		if ((current_time-100)>previous_time) {
+		// warpPrint("Current Time: %d\n",current_time);
+		if ((current_time-500)>previous_time) {
 			yThresh = (yMax+yMin)/2;
 			yMax=yThresh;
 			yMin=yThresh;
@@ -2298,8 +2298,8 @@ main(void)
 			zMin = zAveNew;
 		}
 		current_time = OSA_TimeGetMsec();
-		warpPrint("Current Time: %d\n",current_time);
-		if ((current_time-100)>previous_time) {
+		// warpPrint("Current Time: %d\n",current_time);
+		if ((current_time-500)>previous_time) {
 			zThresh = (zMax+zMin)/2;
 			zMax = zThresh;
 			zMin = zThresh;
@@ -2341,7 +2341,7 @@ main(void)
 		current_time = OSA_TimeGetMsec();
 		warpPrint("Current Time: %d\n",current_time);
 		warpPrint("Previous Step: %d\n",previous_step);
-		if ((AveNew<Thresh)&&(AveOld>Thresh)&&(AveOld-AveNew>100)&&(current_time-300>previous_step)) {
+		if ((AveNew<Thresh)&&(AveOld>Thresh)&&(AveOld-AveNew>100)&&(current_time-400>previous_step)) {
 					// warpPrint("Step in %c axis\n",largestAxis);
 					stepCount++;
 					stepCountChanged = true;
@@ -2365,7 +2365,7 @@ main(void)
 		loopCount += 1;
 		// warpPrint("Loop Count %d\n",loopCount);
 		warpPrint("Step Count %d\n",stepCount);
-		if (stepCountChanged) {
+		if (stepCountChanged || loopCount==1) {
 			uint8_t digiti = 0;
 			while (number>0) {
 				digits[4-digiti] = number%10;
