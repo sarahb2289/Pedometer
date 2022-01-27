@@ -2130,6 +2130,7 @@ main(void)
 	uint32_t loopTimeMax=0;
 	uint32_t loopTimeMin;
 	uint32_t previous_step = 0;
+	uint32_t previous_refresh=0;
 	bool stepCountChanged;
 
 
@@ -2364,6 +2365,7 @@ main(void)
 		
 		loopCount += 1;
 		// warpPrint("Loop Count %d\n",loopCount);
+		current_time=OSA_TimeGetMsec();
 		warpPrint("Step Count %d\n",stepCount);
 		if (stepCountChanged || loopCount==1) {
 			uint8_t digiti = 0;
@@ -2378,6 +2380,7 @@ main(void)
 			}
 			// OSA_TimeDelay(10);
 			stepCountChanged = false;
+			previous_refresh=current_time;
 		}
 		current_time=OSA_TimeGetMsec();
 		// warpPrint("Current Time %d\n",current_time);
