@@ -2124,6 +2124,11 @@ main(void)
 	WarpStatus i2cConfigStatus;
 	uint32_t current_time;
 	uint32_t previous_time;
+	uint32_t loop_start;
+	int32_t loop_time;
+	uint32_t loopTimeAverage=0;
+	uint32_t loopTimeMax=0;
+	uint32_t loopTimeMin;
 	uint32_t previous_step = 0;
 	bool stepCountChanged;
 
@@ -2199,7 +2204,8 @@ main(void)
 	warpPrint("done\n");
 
 	while (1) {
-
+		loop_start=OSA_TimeGetMsec();
+		// warpPrint("Loop Start: %d\n",loop_start);
 		// Acceleration in 2g mode, 4096 counts/g
 
 		// Read x acceleration
@@ -2214,7 +2220,7 @@ main(void)
 		 *	Sign extend the 14-bit value based on knowledge that upper 2 bit are 0:
 		 */	
 		xAccelCombined = (xAccelCombined ^ (1 << 13)) - (1 << 13);
-		warpPrint("Status %x X acceleration %d,", i2cReadStatus,xAccelCombined);
+		// warpPrint("Status %x X acceleration %d,", i2cReadStatus,xAccelCombined);
 		
 		Enqueue(xQ,xAccelCombined);
 
@@ -2227,7 +2233,7 @@ main(void)
 		 *	Sign extend the 14-bit value based on knowledge that upper 2 bit are 0:
 		 */
 		yAccelCombined = (yAccelCombined ^ (1 << 13)) - (1 << 13);
-		warpPrint("Status %x Y acceleration %d,", i2cReadStatus,yAccelCombined);
+		// warpPrint("Status %x Y acceleration %d,", i2cReadStatus,yAccelCombined);
 
 		Enqueue(yQ,yAccelCombined);
 
@@ -2240,7 +2246,7 @@ main(void)
 		 *	Sign extend the 14-bit value based on knowledge that upper 2 bit are 0:
 		 */
 		zAccelCombined = (zAccelCombined ^ (1 << 13)) - (1 << 13);
-		warpPrint("Status %x Z acceleration %d\n", i2cReadStatus,zAccelCombined);
+		// warpPrint("Status %x Z acceleration %d\n", i2cReadStatus,zAccelCombined);
 
 		Enqueue(zQ,zAccelCombined);
 
@@ -2259,7 +2265,9 @@ main(void)
 		if (xAveNew<xMin) {
 			xMin = xAveNew;
 		}
-		if (loopCount%50==0) {
+		current_time = OSA_TimeGetMsec();
+		warpPrint("Current Time: %d\n",current_time);
+		if ((current_time-100)>previous_time) {
 			xThresh = (xMax+xMin)/2;
 			xMax=xThresh;
 			xMin=xThresh;
@@ -2274,6 +2282,7 @@ main(void)
 			yMin = yAveNew;
 		}
 		current_time = OSA_TimeGetMsec();
+		warpPrint("Current Time: %d\n",current_time);
 		if ((current_time-100)>previous_time) {
 			yThresh = (yMax+yMin)/2;
 			yMax=yThresh;
@@ -2288,7 +2297,9 @@ main(void)
 		if (zAveNew<zMin) {
 			zMin = zAveNew;
 		}
-		if (loopCount%50==0) {
+		current_time = OSA_TimeGetMsec();
+		warpPrint("Current Time: %d\n",current_time);
+		if ((current_time-100)>previous_time) {
 			zThresh = (zMax+zMin)/2;
 			zMax = zThresh;
 			zMin = zThresh;
@@ -2298,14 +2309,14 @@ main(void)
 			if ((xMax-xMin)>(zMax-zMin)) {
 				// X Axis has biggest change
 				largestAxis = 'x';
-				warpPrint("Largest Axis %c\n",largestAxis);
+				// warpPrint("Largest Axis %c\n",largestAxis);
 				AveNew = xAveNew;
 				AveOld = xAveOld;
 				Thresh = xThresh;
 			} else {
 				// Z Axis has biggest change
 				largestAxis = 'z';
-				warpPrint("Largest Axis %c\n",largestAxis);
+				// warpPrint("Largest Axis %c\n",largestAxis);
 				AveNew = zAveNew;
 				AveOld = zAveOld;
 				Thresh = zThresh;
@@ -2314,22 +2325,24 @@ main(void)
 			if ((yMax-yMin)>(zMax-zMin)) {
 				// Y Axis has biggest change
 				largestAxis = 'y';
-				warpPrint("Largest Axis %c\n",largestAxis);
+				// warpPrint("Largest Axis %c\n",largestAxis);
 				AveNew = yAveNew;
 				AveOld = yAveOld;
 				Thresh = yThresh;
 			} else {
 				// Z Axis has biggest change
 				largestAxis = 'z';
-				warpPrint("Largest Axis %c\n",largestAxis);
+				// warpPrint("Largest Axis %c\n",largestAxis);
 				AveNew = zAveNew;
 				AveOld = zAveOld;
 				Thresh = zThresh;
 			}
 		}
 		current_time = OSA_TimeGetMsec();
+		warpPrint("Current Time: %d\n",current_time);
+		warpPrint("Previous Step: %d\n",previous_step);
 		if ((AveNew<Thresh)&&(AveOld>Thresh)&&(AveOld-AveNew>100)&&(current_time-300>previous_step)) {
-					warpPrint("Step in %c axis\n",largestAxis);
+					// warpPrint("Step in %c axis\n",largestAxis);
 					stepCount++;
 					stepCountChanged = true;
 					previous_step = current_time;
@@ -2366,7 +2379,27 @@ main(void)
 			// OSA_TimeDelay(10);
 			stepCountChanged = false;
 		}
-	
+		current_time=OSA_TimeGetMsec();
+		// warpPrint("Current Time %d\n",current_time);
+		loop_time=current_time-loop_start;
+		warpPrint("Loop Time: %d\n",loop_time);
+		loopTimeAverage=(loopTimeAverage*(loopCount-1)+loop_time)/loopCount;
+		if (loopCount==1) {
+			loopTimeMin=loop_time;
+			loopTimeMax=loop_time;
+		}
+		if (loop_time>loopTimeMax) {
+			loopTimeMax=loop_time;
+		} else {
+		if (loop_time<loopTimeMin) {
+			loopTimeMin=loop_time;
+		}
+		}	
+		if (loopCount%50==0) {
+			warpPrint("Loop Time Average: %d\n",loopTimeAverage);
+			warpPrint("Loop Time Min: %d\n",loopTimeMin);
+			warpPrint("Loop Time Max: %d\n",loopTimeMax);
+		}
 	}
 	
 	/*MY CODE ENDS*/
