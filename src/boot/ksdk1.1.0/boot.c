@@ -245,10 +245,7 @@ WarpStatus						writeBytesToSpi(uint8_t *  payloadBytes, int payloadLength);
 void							warpLowPowerSecondsSleep(uint32_t sleepSeconds, bool forceAllPinsIntoLowPowerState);
 
 //THESE ARE MY FUNCTIONS!
-// void I2C0_IRQHandler(void) {
-// 		// warpPrint("Hello Sarah!!!");
-// 		return;
-// 	}
+
 
 /* Defining FIFO circular array */
 
@@ -2411,7 +2408,7 @@ main(void)
 		printBootSplash(gWarpCurrentSupplyVoltage, menuRegisterAddress, &powerManagerCallbackStructure);
 
 		warpPrint("\rSelect:\n");
-		warpPrint("\r- 'a': set default Agaiiin sensor.\n");
+		warpPrint("\r- 'a': set default sensor.\n");
 		warpPrint("\r- 'b': set I2C baud rate.\n");
 		warpPrint("\r- 'c': set SPI baud rate.\n");
 		warpPrint("\r- 'd': set UART baud rate.\n");
